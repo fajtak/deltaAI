@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kvíz: kontext a trénink</title>
+
+    <!-- Fonts: Bricolage Grotesque (display + body), Martian Mono (labels, token IDs) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (THEME)
+           "Token Stream": text appears as coloured tokens,
+           the way an LLM sees and generates it.
+           Change these to change the whole look.
+           =========================================== */
+        :root {
+            /* Colors */
+            --paper: #f2eee3;
+            --ink: #15131a;
+            --ink-soft: #6d675c;
+            --rule: rgba(21, 19, 26, 0.14);
+            --panel-dim: #a39c8d;
+            --tok-1: #ffd166;   /* yellow */
+            --tok-2: #9be3c1;   /* mint */
+            --tok-3: #ff9f9f;   /* coral */
+            --tok-4: #a9c7ff;   /* blue */
+            --tok-5: #d9b8ff;   /* lilac */
+
+            /* Stage (used by the viewport base) */
+            --stage-bg: #15131a;
+            --slide-bg: #f2eee3;
+
+            /* Typography, authored at 1920×1080 */
+            --font-display: 'Bricolage Grotesque', sans-serif;
+            --font-mono: 'Martian Mono', monospace;
+            --body-size: 46px;
+            --label-size: 24px;
+
+            /* Spacing */
+            --slide-padding: 120px;
+
+            /* Animation */
+            --spring: cubic-bezier(.2, .9, .3, 1.25);
+            --ease-out: cubic-bezier(.2, .9, .3, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ===========================================
+           FIXED 16:9 STAGE: MANDATORY BASE STYLES
+           Slides are authored at 1920×1080 and scaled as a whole.
+           =========================================== */
+
+        /* 1. Lock the browser viewport */
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background: var(--stage-bg, #000);
+        }
+
+        /* 2. Full-window deck viewport */
+        .deck-viewport {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            background: var(--stage-bg, #000);
+        }
+
+        /* 3. Fixed 16:9 design canvas.
+           JavaScript sets transform: translate(...) scale(...). */
+        .deck-stage {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            transform-origin: 0 0;
+            background: var(--slide-bg, #fff);
+        }
+
+        /* 4. Slides stack inside the fixed stage.
+           Content must be laid out at 1920×1080, not reflowed per device. */
+        .slide {
+            position: absolute;
+            inset: 0;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            display: block;
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            background: var(--slide-bg, #fff);
+        }
+
+        .slide.active,
+        .slide.visible {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 1;
+        }
+
+        /* 5. Keep media inside authored slide bounds */
+        img,
+        video,
+        canvas,
+        svg {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* 6. Presentation chrome stays outside the slide design system */
+        .deck-controls {
+            position: fixed;
+            left: 50%;
+            bottom: 22px;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+
+        /* 7. Print one fixed-size slide per page */
+        @media print {
+            html,
+            body {
+                width: 1920px;
+                height: auto;
+                overflow: visible;
+                background: #fff;
+            }
+
+            .deck-viewport {
+                position: static;
+                overflow: visible;
+                background: #fff;
+            }
+
+            .deck-stage {
+                position: static;
+                width: auto;
+                height: auto;
+                transform: none !important;
+                background: none;
+            }
+
+            .slide {
+                position: relative;
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                width: 1920px;
+                height: 1080px;
+                break-after: page;
+                page-break-after: always;
+            }
+
+            .slide:last-child {
+                break-after: auto;
+                page-break-after: auto;
+            }
+
+            .deck-controls {
+                display: none !important;
+            }
+        }
+
+        /* 8. Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-delay: 0s !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.2s !important;
+            }
+        }
+
+        /* ===========================================
+           SLIDE SURFACE
+           Warm paper with a faint dot grid.
+           =========================================== */
+        .slide {
+            background:
+                radial-gradient(circle at 1px 1px, rgba(21, 19, 26, 0.13) 1.5px, transparent 0) 0 0 / 40px 40px,
+                var(--paper);
+            color: var(--ink);
+            font-family: var(--font-display);
+            font-weight: 500;
+        }
+
+        /* ===========================================
+           SLIDE CHROME
+           Header line (course + section) and footer line
+           (author + page number), same on every slide.
+           =========================================== */
+        .prompt,
+        .foot {
+            position: absolute;
+            left: var(--slide-padding);
+            right: var(--slide-padding);
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            color: var(--ink-soft);
+        }
+        .prompt { top: 96px; padding-bottom: 24px; border-bottom: 2px solid var(--rule); }
+        .foot { bottom: 80px; padding-top: 24px; border-top: 2px solid var(--rule); }
+        .prompt b,
+        .foot b { color: var(--ink); font-weight: 600; }
+
+        /* Content area between header and footer */
+        .body {
+            position: absolute;
+            left: var(--slide-padding);
+            right: var(--slide-padding);
+            top: 196px;
+            bottom: 176px;
+        }
+
+        /* ===========================================
+           ANIMATION
+           .pop elements are "emitted" one by one when the
+           slide becomes visible. Order is set with --i.
+           =========================================== */
+        .pop { opacity: 0; }
+        .slide.visible .pop {
+            animation: emit 0.45s var(--spring) both;
+            animation-delay: calc(var(--i, 0) * 0.14s + 0.25s);
+        }
+        @keyframes emit {
+            from { opacity: 0; transform: translateY(26px) scale(0.94); }
+            to   { opacity: 1; transform: none; }
+        }
+        @keyframes fade  { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes blink { 50% { opacity: 0; } }
+        @keyframes grow  { from { transform: scaleX(0); } }
+
+        @media print {
+            .pop, .caret { opacity: 1 !important; animation: none !important; }
+        }
+
+        /* ===========================================
+           TOKENS
+           Big headline words split into coloured chips,
+           each with a token ID underneath.
+           =========================================== */
+        .c1 { background: var(--tok-1); }
+        .c2 { background: var(--tok-2); }
+        .c3 { background: var(--tok-3); }
+        .c4 { background: var(--tok-4); }
+        .c5 { background: var(--tok-5); }
+
+        .tokens { display: flex; align-items: flex-start; gap: 10px; }
+        .tok { display: flex; flex-direction: column; gap: 18px; }
+        .tok .txt {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 250px;
+            line-height: 0.92;
+            letter-spacing: -0.035em;
+            padding: 6px 22px 22px;
+            border-radius: 18px;
+            white-space: pre;
+        }
+        .tok .id {
+            font-family: var(--font-mono);
+            font-size: 22px;
+            color: var(--ink-soft);
+            padding-left: 22px;
+        }
+
+        /* Blinking caret after the last token */
+        .caret {
+            width: 14px;
+            height: 236px;
+            margin-left: 6px;
+            border-radius: 4px;
+            background: var(--ink);
+            opacity: 0;
+        }
+        .slide.visible .caret {
+            animation: fade 0.1s linear forwards, blink 1.1s step-end infinite;
+            animation-delay: calc(var(--i, 0) * 0.14s + 0.25s), calc(var(--i, 0) * 0.14s + 0.35s);
+        }
+
+        /* Medium tokens: section headings on content slides */
+        .tokens.md { gap: 8px; }
+        .tokens.md .tok { gap: 12px; }
+        .tokens.md .txt { font-size: 132px; padding: 4px 16px 14px; border-radius: 14px; }
+        .tokens.md .id { font-size: 18px; padding-left: 16px; }
+        .tokens.md .caret { width: 10px; height: 128px; }
+
+        /* Inline token: highlight a word inside running text */
+        .hl { padding: 2px 12px 6px; border-radius: 10px; font-weight: 700; white-space: nowrap; }
+
+        /* Small mono chips */
+        .chip {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 34px;
+            padding: 12px 20px;
+            border-radius: 12px;
+        }
+
+        /* ===========================================
+           DARK PANEL
+           The "model output" surface: next-token
+           predictions, QR code, asides.
+           =========================================== */
+        .panel {
+            background: var(--ink);
+            color: var(--paper);
+            border-radius: 22px;
+            box-shadow: 14px 14px 0 rgba(21, 19, 26, 0.12);
+        }
+        .panel h3 {
+            font: 400 20px var(--font-mono);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--panel-dim);
+        }
+        .row {
+            display: grid;
+            grid-template-columns: 170px 1fr 86px;
+            align-items: center;
+            gap: 18px;
+            font-family: var(--font-mono);
+            font-size: 26px;
+            margin-top: 16px;
+        }
+        .row .bar { height: 22px; border-radius: 6px; background: rgba(242, 238, 227, 0.12); overflow: hidden; }
+        .row .bar i { display: block; height: 100%; border-radius: 6px; transform-origin: left; }
+        .slide.visible .row .bar i { animation: grow 0.9s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 0.14s + 0.55s); }
+        .row .p { text-align: right; color: var(--panel-dim); font-size: 22px; }
+
+        /* ===========================================
+           SLIDE 1: TITLE
+           =========================================== */
+        .title-slide .tokens { position: absolute; left: 120px; top: 270px; }
+        .title-slide .meta {
+            position: absolute;
+            left: 120px;
+            top: 650px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .title-slide .meta .chip { font-size: 44px; padding: 14px 22px; }
+        .title-slide .sub { position: absolute; left: 120px; top: 790px; font-size: 60px; font-weight: 800; letter-spacing: -0.02em; }
+        .title-slide .panel { position: absolute; right: 120px; top: 640px; width: 640px; padding: 34px 38px 38px; }
+        .title-slide .panel h3 { margin-bottom: 26px; }
+        .title-slide .row { grid-template-columns: 270px 1fr 86px; }
+        .title-slide .row:nth-of-type(1) { font-weight: 600; }
+
+        /* ===========================================
+           CONTENT SLIDES
+           Small token heading on top, one content block
+           underneath (558px tall at 1920×1080).
+           =========================================== */
+        .tokens.sm { gap: 6px; }
+        .tokens.sm .tok { gap: 8px; }
+        .tokens.sm .txt { font-size: 96px; padding: 2px 12px 12px; border-radius: 12px; }
+        .tokens.sm .caret { width: 8px; height: 96px; }
+
+        .content {
+            position: absolute;
+            left: 0; right: 0; top: 150px; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 32px;
+            font-size: 40px;
+            line-height: 1.28;
+        }
+        .content.spread { justify-content: space-between; }
+
+        .lead { font-size: 56px; font-weight: 700; line-height: 1.16; letter-spacing: -0.02em; }
+        .big { font-size: 80px; font-weight: 800; line-height: 1.06; letter-spacing: -0.03em; }
+        .note { font: 400 22px/1.4 var(--font-mono); color: var(--ink-soft); }
+        .panel .note { color: var(--panel-dim); }
+        .hl, .chip { color: var(--ink); }
+        .hl.wrap { white-space: normal; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+        .chips { display: flex; flex-wrap: wrap; gap: 12px; }
+
+        /* Cards and column grids */
+        .card { border-radius: 22px; padding: 34px 40px; }
+        .card.light { background: #fbf8f0; border: 3px solid var(--ink); box-shadow: 14px 14px 0 rgba(21, 19, 26, 0.12); }
+        .card h4 { font-size: 46px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+        .card p { font-size: 32px; line-height: 1.25; }
+        .card .big { font-size: 76px; line-height: 1.06; }
+        .card .note { font-size: 22px; line-height: 1.4; }
+        .cols { display: grid; gap: 40px; }
+        .cols.two { grid-template-columns: 1fr 1fr; }
+        .cols.three { grid-template-columns: 1fr 1fr 1fr; }
+        .stack { display: flex; flex-direction: column; gap: 22px; }
+
+        /* Numbered / labelled list */
+        .list { display: grid; row-gap: 26px; list-style: none; }
+        .list li { display: grid; grid-template-columns: 84px 1fr; column-gap: 28px; align-items: start; }
+        .list.wide li { grid-template-columns: 210px 1fr; }
+        .list .chip { font-size: 28px; padding: 12px 0; text-align: center; }
+        .list p { font-size: 40px; line-height: 1.25; }
+
+        /* Strips: hands-on demo (dark) and question to the class (yellow) */
+        .strip { display: grid; grid-template-columns: auto 1fr; column-gap: 28px; align-items: center; padding: 24px 32px; border-radius: 22px; }
+        .strip .chip { font-size: 26px; }
+        .strip p { font-size: 36px; font-weight: 700; line-height: 1.2; }
+        .strip.ask { background: var(--tok-1); border: 3px solid var(--ink); box-shadow: 14px 14px 0 rgba(21, 19, 26, 0.12); }
+        .strip.ask .chip { background: var(--ink); color: var(--paper); }
+
+        /* Big numbers */
+        .stats { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 32px; }
+        .stat { border-radius: 22px; padding: 30px 32px; border: 3px solid var(--ink); }
+        .stat .num { font-size: 68px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; white-space: nowrap; }
+        .stat .num.txtnum { font-size: 50px; }
+        .stat p { font-size: 30px; line-height: 1.2; margin-top: 16px; }
+
+        /* Step-by-step flow with arrows */
+        .flow { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 46px; }
+        .flow > div { position: relative; min-height: 170px; border-radius: 18px; padding: 22px 24px; background: #fbf8f0; border: 3px solid var(--ink); font-size: 31px; font-weight: 700; line-height: 1.16; }
+        .flow > div b { display: block; font: 600 22px var(--font-mono); color: var(--ink-soft); margin-bottom: 12px; }
+        .flow > div:not(:last-child)::after { content: '→'; position: absolute; right: -40px; top: 50%; translate: 0 -50%; font: 600 30px var(--font-mono); color: var(--ink); }
+        .flow > div.loop { background: var(--ink); color: var(--paper); }
+        .flow > div.loop b { color: var(--panel-dim); }
+
+        /* A sentence written out token by token */
+        .gen { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .gen .chip { font-family: var(--font-display); font-weight: 800; font-size: 54px; line-height: 1.1; padding: 8px 16px 12px; white-space: pre; }
+        .gen .chip.blank { background: transparent; border: 3px dashed var(--ink); padding: 5px 13px 9px; }
+        .gen .caret { width: 8px; height: 66px; }
+        .gen.xl .chip { font-size: 72px; }
+        /* Blank that gets covered by the answer on click */
+        .gen .fill { position: relative; display: flex; }
+        .gen .fill .answer { position: absolute; left: 0; top: 0; display: flex; gap: 6px; }
+        .gen.code .chip { font-family: var(--font-mono); font-weight: 600; font-size: 38px; }
+
+        /* Mid-size token row with IDs (slide "Token") */
+        .tokens.ex .txt { font-size: 150px; padding: 4px 16px 16px; border-radius: 14px; }
+        .tokens.ex .id { font-size: 20px; padding-left: 16px; }
+
+        /* Nested circles: AI ⊃ ML ⊃ NN ⊃ LLM */
+        .rings { position: relative; width: 540px; height: 540px; flex: none; }
+        .ring { position: absolute; left: 50%; translate: -50% 0; bottom: 20px; border-radius: 50%; border: 3px solid var(--ink); display: flex; justify-content: center; padding-top: 32px; font: 600 19px var(--font-mono); }
+        .ring.r1 { width: 540px; height: 540px; bottom: 0; }
+        .ring.r2 { width: 410px; height: 410px; }
+        .ring.r3 { width: 290px; height: 290px; }
+        .ring.r4 { width: 170px; height: 170px; padding: 0; align-items: center; font: 800 50px var(--font-display); }
+        .split { display: grid; grid-template-columns: auto 1fr; column-gap: 80px; align-items: center; }
+
+        /* Timeline */
+        .timeline { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); column-gap: 36px; }
+        .timeline::before { content: ''; position: absolute; left: 0; right: 0; top: 30px; height: 4px; background: var(--ink); }
+        .timeline .chip { position: relative; font-size: 28px; border: 3px solid var(--ink); }
+        .timeline h4 { font-size: 46px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; margin-top: 30px; }
+        .timeline p { font-size: 29px; line-height: 1.25; margin-top: 14px; }
+
+        /* Context window: stacked blocks in a dashed frame */
+        .ctx { border: 3px dashed var(--ink); border-radius: 22px; padding: 20px 24px 24px; display: grid; row-gap: 14px; }
+        .ctx h3 { font: 600 20px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+        .ctx div { border-radius: 14px; padding: 20px 26px; font-size: 34px; font-weight: 700; line-height: 1.15; }
+
+        /* Context size bars (linear scale on purpose) */
+        .sizes { padding: 30px 44px 46px; }
+        .sizes .row { grid-template-columns: 300px 1fr 230px 250px; font-size: 30px; margin-top: 34px; }
+        .sizes .row .bar { height: 36px; }
+        .sizes .row .p { font-size: 30px; color: var(--paper); font-weight: 600; }
+        .sizes .row .an { font-family: var(--font-display); font-weight: 700; font-size: 34px; color: var(--tok-1); }
+
+        /* Wall of knobs: the model's parameters */
+        .knobs { display: grid; grid-template-columns: repeat(10, 46px); gap: 16px; }
+        .knob { position: relative; width: 46px; height: 46px; border-radius: 50%; border: 3px solid var(--paper); }
+        .knob::after { content: ''; position: absolute; left: 50%; top: 4px; width: 5px; height: 15px; margin-left: -2.5px; border-radius: 2px; background: var(--k); }
+
+        /* Quiz: answers are revealed one click at a time */
+        .quiz { display: grid; row-gap: 20px; list-style: none; }
+        .quiz li { display: grid; grid-template-columns: 64px 1fr 640px; column-gap: 26px; align-items: center; }
+        .quiz .q { width: 64px; height: 64px; border-radius: 14px; background: var(--ink); color: var(--paper); font: 600 30px/64px var(--font-mono); text-align: center; }
+        .quiz p { font-size: 36px; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; }
+        .quiz .a { border-radius: 14px; padding: 16px 22px; font-size: 30px; font-weight: 700; line-height: 1.15; }
+
+        /* One training step: before → correction → after */
+        .trainstep { display: grid; grid-template-columns: 1fr 380px 1fr; column-gap: 34px; align-items: stretch; }
+        .trainstep .panel { padding: 28px 34px 32px; }
+        .trainstep .row { grid-template-columns: 130px 1fr 80px; }
+        .trainstep .row.hit { font-weight: 600; color: var(--tok-2); }
+        .trainstep .row.hit .p { color: var(--tok-2); }
+        .trainstep .fix { display: flex; flex-direction: column; justify-content: center; gap: 14px; padding: 26px 30px; }
+        .trainstep .fix p { font-size: 30px; line-height: 1.2; }
+
+        /* Loss landscape drawing */
+        .hill { padding: 26px 30px 20px; }
+        .hill svg { display: block; width: 700px; height: 400px; max-height: none; }
+        .hill text { font: 600 22px var(--font-mono); fill: var(--ink-soft); }
+
+        /* Model output getting better during training */
+        .evolve { padding: 30px 40px 38px; }
+        .erow { display: grid; grid-template-columns: 200px 1fr 220px; column-gap: 28px; align-items: center; margin-top: 24px; }
+        .erow .chip { font-size: 24px; text-align: center; padding: 10px 0; }
+        .erow .smp { font: 400 28px/1.3 var(--font-mono); }
+        .erow .bar { height: 22px; border-radius: 6px; background: rgba(242, 238, 227, 0.12); overflow: hidden; }
+        .erow .bar i { display: block; height: 100%; border-radius: 6px; transform-origin: left; }
+        .slide.visible .erow .bar i { animation: grow 0.9s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 0.14s + 0.55s); }
+        .evolve .heads { display: grid; grid-template-columns: 200px 1fr 220px; column-gap: 28px; }
+
+        /* Labs and their flagship models */
+        .card.light h3 { font: 400 20px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+        .labs { display: grid; row-gap: 14px; margin-top: 22px; }
+        .lab { display: grid; grid-template-columns: 200px 1fr; column-gap: 22px; align-items: center; }
+        .lab .chip { font-size: 24px; text-align: center; padding: 10px 0; }
+        .lab b { font-size: 38px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+        .lab small { font: 400 20px var(--font-mono); color: var(--ink-soft); margin-left: 14px; letter-spacing: 0; }
+        .panel .lab small { color: var(--panel-dim); }
+
+        /* Leaderboard rows */
+        .rank { display: grid; grid-template-columns: 54px 1fr auto; column-gap: 18px; align-items: center; margin-top: 18px; font-size: 36px; font-weight: 800; letter-spacing: -0.02em; }
+        .rank .chip { font-size: 24px; text-align: center; padding: 8px 0; }
+        .rank span:last-child { font: 600 26px var(--font-mono); letter-spacing: 0; }
+
+        /* Pros and cons list inside a card */
+        .pm { list-style: none; display: grid; row-gap: 8px; margin-top: 18px; }
+        .pm li { display: grid; grid-template-columns: 40px 1fr; font-size: 30px; line-height: 1.22; }
+        .pm li b { font-family: var(--font-mono); }
+
+        /* Token-by-token generation demo (driven by JS) */
+        .genrow { display: grid; grid-template-columns: minmax(0, 1fr) 600px; column-gap: 50px; align-items: center; cursor: pointer; }
+        .genpanel { padding: 26px 32px 30px; }
+        .genpanel .row { grid-template-columns: 190px 1fr 86px; transition: opacity 0.3s ease; }
+        .genpanel .row .bar i { animation: none !important; transition: width 0.5s var(--ease-out); }
+        .genpanel .row.pick { color: var(--tok-2); font-weight: 600; }
+        .genpanel .row.pick .p { color: var(--tok-2); }
+        .genpanel.picked .row:not(.pick) { opacity: 0.35; }
+        .chip.born { animation: emit 0.45s var(--spring) both; }
+        .flow.live > div { min-height: 132px; transition: background 0.25s ease, translate 0.25s var(--spring), color 0.25s ease; }
+        .flow.live > div.on { background: var(--tok-1); translate: 0 -8px; }
+        .flow.live > div.loop.on { background: var(--tok-2); color: var(--ink); }
+        .flow.live > div.loop.on b { color: var(--ink-soft); }
+
+        /* Temperature playground: slider reshapes the distribution, button samples from it */
+        .temp { display: grid; grid-template-columns: auto minmax(0, 1fr) 200px; column-gap: 30px; align-items: center; }
+        .temp .presets { display: flex; gap: 10px; }
+        .temp .presets button, .tempout .go { border: 0; border-radius: 12px; cursor: pointer; font: 600 24px var(--font-mono); padding: 12px 16px; color: var(--ink); }
+        .temp .presets button.on { outline: 3px solid var(--ink); outline-offset: 2px; }
+        .temp input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 18px; border: 3px solid var(--ink); border-radius: 10px; cursor: pointer; background: linear-gradient(90deg, var(--tok-4), var(--tok-1) 50%, var(--tok-3)); }
+        .temp input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 46px; height: 46px; border-radius: 50%; background: var(--ink); border: 5px solid var(--paper); box-shadow: 0 0 0 3px var(--ink); }
+        .temp input[type=range]::-moz-range-thumb { width: 36px; height: 36px; border-radius: 50%; background: var(--ink); border: 5px solid var(--paper); box-shadow: 0 0 0 3px var(--ink); }
+        .temp .val { font-size: 64px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; text-align: right; white-space: nowrap; }
+        .tempmain { display: grid; grid-template-columns: 700px minmax(0, 1fr); column-gap: 40px; align-items: stretch; }
+        .temppanel { padding: 24px 32px 28px; }
+        .temppanel .row { grid-template-columns: 170px 1fr 96px; margin-top: 11px; }
+        .temppanel .row .bar i { animation: none !important; transition: width 0.25s var(--ease-out); }
+        .tempout { display: flex; flex-direction: column; gap: 14px; padding: 24px 30px; }
+        .tempout .mode { font-size: 30px; font-weight: 700; line-height: 1.2; min-height: 72px; }
+        .tempout .go { align-self: flex-start; background: var(--ink); color: var(--paper); }
+        .tempout .samples { display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; min-height: 104px; }
+        .tempout .samples .chip { font-size: 26px; padding: 8px 14px; }
+
+        /* Click-to-open examples that cover the content area */
+        .peekbtn { border: 0; cursor: pointer; font: 600 26px var(--font-mono); color: var(--ink); padding: 12px 18px; border-radius: 12px; transition: translate 0.15s var(--ease-out); }
+        .peekbtn:hover, .peekbtn:focus-visible { translate: 0 -4px; }
+        .peek { position: absolute; inset: 0; z-index: 5; padding: 32px 40px; display: flex; flex-direction: column; gap: 18px; cursor: pointer; }
+        .peek[hidden] { display: none; }
+        .peek pre { font: 400 25px/1.45 var(--font-mono); white-space: pre-wrap; border-radius: 14px; padding: 18px 22px; background: rgba(242, 238, 227, 0.08); }
+        .peek pre.res { background: rgba(155, 227, 193, 0.16); }
+        .peek pre b { color: var(--tok-1); font-weight: 600; }
+        .peek .lbl { font: 600 20px var(--font-mono); color: var(--panel-dim); margin-bottom: -8px; }
+
+        /* Capability table: model vs chatbot vs agent */
+        .cmp { display: grid; grid-template-columns: minmax(0, 1fr) repeat(4, 232px); column-gap: 10px; row-gap: 8px; }
+        .cmp .head { border: 3px solid transparent; border-radius: 14px; cursor: help; padding: 8px 6px; min-height: 84px; font: 600 24px/1.2 var(--font-mono); color: var(--ink); display: flex; align-items: center; justify-content: center; text-align: center; }
+        .cmp .head.hot { border-color: var(--ink); }
+        .cmp .cap { display: flex; align-items: center; min-height: 54px; font-size: 30px; font-weight: 700; letter-spacing: -0.01em; border-bottom: 2px solid var(--rule); }
+        .cmp .cell { display: flex; align-items: center; justify-content: center; border-radius: 10px; font: 600 30px var(--font-mono); background: rgba(21, 19, 26, 0.05); color: var(--ink-soft); }
+        .cmp .cell.yes { background: var(--tok-2); color: var(--ink); }
+        .cmp .cell.part { background: var(--tok-1); color: var(--ink); font-size: 22px; }
+        .cmpdef { padding: 20px 30px 22px; min-height: 118px; }
+        .cmpdef p { font-size: 29px; line-height: 1.25; margin-top: 8px; }
+
+        /* 2×2 question cards (same look as lesson 0) */
+        .questions { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 40px; list-style: none; }
+        .questions li { border-radius: 22px; padding: 30px 38px; display: grid; grid-template-columns: 76px 1fr; column-gap: 28px; align-items: center; }
+        .questions .q { width: 76px; height: 76px; border-radius: 16px; background: var(--ink); color: var(--paper); font: 600 40px/76px var(--font-mono); text-align: center; }
+        .questions p { font-size: 52px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+
+        /* Two-tone "can / careful" columns */
+        .yesno .card { padding: 30px 36px; border: 3px solid var(--ink); }
+        .yesno h4 { margin-bottom: 20px; }
+        .yesno .chip { background: var(--paper); font-size: 26px; padding: 10px 16px; }
+
+        /* ===========================================
+           CLICK STEPS
+           .step elements stay hidden until the presenter
+           presses "next"; only then does the deck advance.
+           =========================================== */
+        .step { opacity: 0; transform: translateY(16px); transition: opacity 0.35s ease, transform 0.35s var(--spring); }
+        .step.shown,
+        body.editing .step { opacity: 1; transform: none; }
+        @media print { .step { opacity: 1 !important; transform: none !important; } }
+
+        /* ===========================================
+           DECK CHROME (outside the stage)
+           Progress bar + inline edit toggle.
+           =========================================== */
+        .progress { position: fixed; left: 0; bottom: 0; height: 4px; width: 0; background: var(--tok-2); z-index: 1000; transition: width 0.4s var(--ease-out); }
+
+        /* Edit toggle visibility is controlled by JS classes only */
+        .edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 10000; cursor: pointer; }
+        .edit-toggle {
+            position: fixed; top: 16px; left: 16px;
+            width: 44px; height: 44px; border-radius: 12px; border: 0;
+            background: var(--tok-1); color: var(--ink);
+            font-size: 20px; cursor: pointer;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10001;
+        }
+        .edit-toggle.show,
+        .edit-toggle.active { opacity: 1; pointer-events: auto; }
+        .edit-toggle.active { background: var(--tok-3); }
+        .edit-hint {
+            position: fixed; top: 22px; left: 72px; z-index: 10001;
+            font: 400 13px var(--font-mono); color: var(--paper);
+            background: rgba(21, 19, 26, 0.85); padding: 8px 12px; border-radius: 8px;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        body.editing .edit-hint { opacity: 1; }
+        body.editing [contenteditable] { outline: 2px dashed rgba(21, 19, 26, 0.35); outline-offset: 4px; cursor: text; }
+        body.editing .panel [contenteditable] { outline-color: rgba(242, 238, 227, 0.4); }
+
+        @media print { .progress, .edit-hotzone, .edit-toggle, .edit-hint { display: none !important; } }
+    
+        /* ===========================================
+           OPAKOVACÍ KVÍZ
+           Otázka, čtyři možnosti, správná se zvýrazní po kliku
+           (klik odhalí .expl, zbytek řeší :has)
+           =========================================== */
+        .ask { font-size: 54px; font-weight: 800; line-height: 1.12; letter-spacing: -0.02em; }
+        .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 28px; }
+        .opt {
+            display: grid; grid-template-columns: 64px 1fr; column-gap: 22px; align-items: center;
+            min-height: 108px; padding: 14px 24px;
+            background: #fbf8f0; border: 3px solid var(--ink); border-radius: 18px;
+            font-size: 34px; font-weight: 700; line-height: 1.14;
+            transition: opacity 0.35s ease, background 0.35s ease, transform 0.35s var(--spring), box-shadow 0.35s ease;
+        }
+        .opt .q { width: 64px; height: 64px; border-radius: 14px; background: var(--ink); color: var(--paper); font: 600 30px/64px var(--font-mono); text-align: center; }
+        .slide:has(.expl.shown) .opt:not(.ok) { opacity: 0.3 !important; }
+        .slide:has(.expl.shown) .opt.ok { background: var(--tok-2); transform: scale(1.02); box-shadow: 10px 10px 0 rgba(21, 19, 26, 0.14); }
+        .strip.expl { background: var(--ink); color: var(--paper); padding: 20px 28px; }
+        .strip.expl .chip { background: var(--tok-2); color: var(--ink); }
+        .strip.expl p { font-size: 32px; font-weight: 600; }
+    
+        /* ===========================================
+           POKUSY (kvíz k části 2)
+           Řádek s návodem k pokusu v tokenizéru, užší mezery
+           =========================================== */
+        .content.exp { gap: 22px; }
+        .content.exp .ask { font-size: 48px; }
+        .how { display: flex; align-items: center; gap: 20px; font: 500 28px/1.3 var(--font-mono); color: var(--ink); }
+        .how .chip { font-size: 22px; flex: none; }
+        a.lnk { color: inherit; text-decoration: none; border-bottom: 3px solid var(--tok-3); white-space: nowrap; }
+        a.lnk:hover { background: var(--tok-1); }
+    </style>
+</head>
+<body>
+    <div class="deck-viewport">
+        <main class="deck-stage" id="deckStage">
+
+
+            <!-- SLIDE 1: Titulní -->
+            <section class="slide title-slide active">
+                <div class="prompt">
+                    <span><b>ai_101</b> · kurz o velkých jazykových modelech</span>
+                    <span>lesson <b>1</b> · opakování</span>
+                </div>
+
+                <h1 class="tokens" aria-label="Kvíz">
+                    <span class="tok pop" style="--i:1"><span class="txt c3">Kv</span><span class="id">#4012</span></span>
+                    <span class="tok pop" style="--i:3"><span class="txt c4">íz</span><span class="id">#731</span></span>
+                    <span class="caret" style="--i:6"></span>
+                </h1>
+
+                <div class="meta">
+                    <span class="chip c5 pop" style="--i:8">části</span>
+                    <span class="chip c1 pop" style="--i:9"> 3</span>
+                    <span class="chip c2 pop" style="--i:10"> +</span>
+                    <span class="chip c3 pop" style="--i:11"> 4</span>
+                    <span class="chip c4 pop" style="--i:12"> ·</span>
+                    <span class="chip c5 pop" style="--i:13"> kon</span>
+                    <span class="chip c1 pop" style="--i:14">text</span>
+                </div>
+                <p class="sub pop" style="--i:18">Co vám zůstalo z minula?</p>
+
+                <div class="panel pop" style="--i:19">
+                    <h3>Další token</h3>
+                    <div class="row" style="--i:20"><span>kvíz</span><span class="bar"><i class="c2" style="width:85%"></i></span><span class="p">85 %</span></div>
+                    <div class="row" style="--i:21"><span>nový chat</span><span class="bar"><i class="c1" style="width:13%"></i></span><span class="p">13 %</span></div>
+                    <div class="row" style="--i:22"><span>písemka</span><span class="bar"><i class="c3" style="width:2%;min-width:6px"></i></span><span class="p">2 %</span></div>
+                </div>
+
+                <div class="foot">
+                    <span><b>Lukáš Fajt</b></span>
+                    <span>01 / 13</span>
+                </div>
+            </section>
+
+            <!-- SLIDE 2: Jak to bude -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · kvíz k částem 3 a 4</span>
+                    <span><b>pravidla</b></span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Jak to bude">
+                        <span class="tok pop" style="--i:1"><span class="txt c3">Jak</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c4"> to</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c5"> bu</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c1">de</span></span>
+                        <span class="caret" style="--i:5"></span>
+                    </h2>
+
+                    <div class="content">
+                        <ol class="questions">
+                            <li class="c1 pop" style="--i:8"><span class="q">1</span><p>10 otázek, u každé jedna správná odpověď</p></li>
+                            <li class="c2 pop" style="--i:9"><span class="q">2</span><p>Písmeno si napište na papír nebo do mobilu</p></li>
+                            <li class="c4 pop" style="--i:10"><span class="q">3</span><p>Otázky 1–5 jsou o <b>kontextu</b>, 6–10 o <b>trénování</b></p></li>
+                            <li class="c5 pop" style="--i:11"><span class="q">4</span><p>U <b>pokusu</b> nejdřív tipněte, pak ověřte v chatbotu. Bod je za tip.</p></li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>02 / 13</span>
+                </div>
+            </section>
+
+            <!-- SLIDE 3: Otázka 1 -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · kvíz k částem 3 a 4</span>
+                    <span>otázka <b>1</b> z 10</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Otázka 1">
+                        <span class="tok pop" style="--i:1"><span class="txt c4">Ot</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c5">áz</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c1">ka</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c2"> 1</span></span>
+                        <span class="caret" style="--i:5"></span>
+                    </h2>
+
+                    <div class="content">
+                        <p class="ask pop" style="--i:7">Co je kontextové okno?</p>
+                        <div class="opts">
+                            <div class="opt pop" style="--i:8"><span class="q">A</span><p>Seznam stránek, které model prohledá</p></div>
+                            <div class="opt pop" style="--i:9"><span class="q">B</span><p>Okno aplikace, ve kterém píšete</p></div>
+                            <div class="opt ok pop" style="--i:10"><span class="q">C</span><p>Kolik tokenů model v jednu chvíli „vidí“</p></div>
+                            <div class="opt pop" style="--i:11"><span class="q">D</span><p>Doba, po kterou si model pamatuje chat</p></div>
+                        </div>
+                        <div class="strip expl step"><span class="chip">C</span><p>Kontext je pracovní stůl modelu. Co se na něj nevejde, pro model neexistuje.</p></div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>03 / 13</span>
+                </div>
+            </section>
+
+            <!-- SLIDE 4: Otázka 2 -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · kvíz k částem 3 a 4</span>
+                    <span>otázka <b>2</b> z 10</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Otázka 2">
+                        <span class="tok pop" style="--i:1"><span class="txt c4">Ot</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c5">áz</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c1">ka</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c2"> 2</span></span>
+                        <span class="caret" style="--i:5"></span>
+                    </h2>
+
+                    <div class="content">
+                        <p class="ask pop" style="--i:7">Co se modelu pošle, když napíšete novou zprávu?</p>
+                        <div class="opts">
+                            <div class="opt pop" style="--i:8"><span class="q">A</span><p>Jen vaše nová zpráva</p></div>
+                            <div class="opt ok pop" style="--i:9"><span class="q">B</span><p>Systémový prompt, celá konverzace, soubory i nová zpráva</p></div>
+                            <div class="opt pop" style="--i:10"><span class="q">C</span><p>Jen poslední tři zprávy</p></div>
+                            <div class="opt pop" style="--i:11"><span class="q">D</span><p>Jen shrnutí, které si model udělal minule</p></div>
+                        </div>
+                        <div class="strip expl step"><span class="chip">B</span><p>Pokaždé celé, od začátku. Včetně skrytých instrukcí od provozovatele.</p></div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>04 / 13</span>
+                </div>
+            </section>
+
+            <!-- SLIDE 5: Otázka 3 -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · kvíz k částem 3 a 4</span>
+                    <span>otázka <b>3</b> z 10 · <b>pokus</b></span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Pokus 3">
+                        <span class="tok pop" style="--i:1"><span class="txt c3">Po</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c4">kus</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c5"> 3</span></span>
+                        <span class="caret" style="--i:4"></span>
+                    </h2>
+
+                    <div class="content exp">
+                        <p class="ask pop" style="--i:7">V jednom chatu řeknete modelu tajné slovo. Pak otevřete nový chat a zeptáte se na něj. Co se stane?</p>
+                        <p class="how pop" style="--i:8"><span class="chip c1">ZKUSTE</span>Vyzkoušejte to v chatbotu: tajné slovo, pak nový chat a otázka.</p>
+                        <div class="opts">
+                            <div class="opt pop" style="--i:9"><span class="q">A</span><p>Řekne ho, model si ho uložil do vah</p></div>
+                            <div class="opt ok pop" style="--i:10"><span class="q">B</span><p>Nezná ho, nový chat je čistý stůl</p></div>
+                            <div class="opt pop" style="--i:11"><span class="q">C</span><p>Řekne ho, ale jen do druhého dne</p></div>
+                            <div class="opt pop" style="--i:12"><span class="q">D</span><p>Odmítne odpovědět kvůli soukromí</p></div>
+                        </div>
+                        <div class="strip expl step"><span class="chip">B</span><p>Model nemá paměť. Pokud slovo přesto zná, aplikace má zapnutou „paměť“ a potichu si ho vložila do kontextu.</p></div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>05 / 13</span>
+                </div>
+            </section>
+
+            <!-- SLIDE 6: Otázka 4 -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · kvíz k částem 3 a 4</span>
+                    <span>otázka <b>4</b> z 10</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Otázka 4">
+                        <span class="tok pop" style="--i:1"><span class="txt c4">Ot</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c5">áz</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c1">ka</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c2"> 4</span></span>
+                        <span class="caret" style="--i:5"></span>
+                    </h2>
+
+                    <div class="content">
+                        <p class="ask pop" style="--i:7">Dlouhý chat se zaplní až po okraj. Co se stane?</p>
+                        <div class="opts">
+                            <div class="opt pop" style="--i:8"><span class="q">A</span><p>Model začne odpovídat rychleji</p></div>
+                            <div class="opt pop" style="--i:9"><span class="q">B</span><p>Aplikace chat smaže</p></div>
+                            <div class="opt pop" style="--i:10"><span class="q">C</span><p>Model se naučí nová slova</p></div>
+                            <div class="opt ok pop" style="--i:11"><span class="q">D</span><p>Začátek se ořízne nebo shrne a model ho „zapomene“</p></div>
+                        </div>
+                        <div class="strip expl step"><span class="chip">D</span><p>A i když se vše vejde, v dlouhém kontextu model hůř hlídá detaily. Nové téma = nový chat.</p></div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>06 / 13</span>
+                </div>
+            </section>
+
+            <!-- SLIDE 7: Otázka 5 -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · kvíz k částem 3 a 4</span>
+                    <span>otázka <b>5</b> z 10</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Otázka 5">
+                        <span class="tok pop" style="--i:1"><span class="txt c4">Ot</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c5">áz</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c1">ka</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c2"> 5</span></span>
+                        <span class="caret" style="--i:5"></span>
+                    </h2>
+
+                    <div class="content">
+                        <p class="ask pop" style="--i:7">„Vysvětli mi derivaci.“ Co pomůže nejvíc k lepší odpovědi?</p>
+                        <div class="opts">
+                            <div class="opt pop" style="--i:8"><span class="q">A</span><p>Napsat otázku velkými písmeny</p></div>
+                            <div class="opt pop" style="--i:9"><span class="q">B</span><p>Zeptat se třikrát za sebou</p></div>
+                            <div class="opt ok pop" style="--i:10"><span class="q">C</span><p>Přidat, kdo jste a k čemu to potřebujete</p></div>
+                            <div class="opt pop" style="--i:11"><span class="q">D</span><p>Poděkovat předem</p></div>
+                        </div>
+                        <div class="strip expl step"><span class="chip">C</span><p>Model o vás ví jen to, co je v kontextu. „Jsem ve druháku, zítra píšu písemku, vysvětli to na rychlosti auta.“</p></div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>07 / 13</span>
+                </div>
+            </section>
+
+            <!-- SLIDE 8: Otázka 6 -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · kvíz k částem 3 a 4</span>
+                    <span>otázka <b>6</b> z 10</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Otázka 6">
+                        <span class="tok pop" style="--i:1"><span class="txt c4">Ot</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c5">áz</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c1">ka</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c2"> 6</span></span>
+                        <span class="caret" style="--i:5"></span>
+                    </h2>
+
+                    <div class="content">
+                        <p class="ask pop" style="--i:7">Co je vlastně „model“?</p>
+                        <div class="opts">
+                            <div class="opt ok pop" style="--i:8"><span class="q">A</span><p>Obrovská hromada čísel (parametrů), které se při tréninku ladí</p></div>
+                            <div class="opt pop" style="--i:9"><span class="q">B</span><p>Databáze všech textů z internetu</p></div>
+                            <div class="opt pop" style="--i:10"><span class="q">C</span><p>Program se ručně napsanými pravidly</p></div>
+                            <div class="opt pop" style="--i:11"><span class="q">D</span><p>Seznam otázek a hotových odpovědí</p></div>
+                        </div>
+                        <div class="strip expl step"><span class="chip">A</span><p>Miliardy až biliony „knoflíků“. Na začátku jsou nastavené náhodně, a model proto plácá nesmysly.</p></div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>08 / 13</span>
+                </div>
+            </section>
+
+            <!-- SLIDE 9: Otázka 7 -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · kvíz k částem 3 a 4</span>
+                    <span>otázka <b>7</b> z 10</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Otázka 7">
+                        <span class="tok pop" style="--i:1"><span class="txt c4">Ot</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c5">áz</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c1">ka</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c2"> 7</span></span>
+                        <span class="caret" style="--i:5"></span>
+                    </h2>
+
+                    <div class="content">
+                        <p class="ask pop" style="--i:7">Jak probíhá předtrénování?</p>
+                        <div class="opts">
+                            <div class="opt pop" style="--i:8"><span class="q">A</span><p>Lidé modelu vysvětlují gramatiku</p></div>
+                            <div class="opt pop" style="--i:9"><span class="q">B</span><p>Model si čte Wikipedii a dělá výpisky</p></div>
+                            <div class="opt ok pop" style="--i:10"><span class="q">C</span><p>Model hádá další token, porovná ho se skutečností a trochu se opraví</p></div>
+                            <div class="opt pop" style="--i:11"><span class="q">D</span><p>Model kopíruje odpovědi jiného modelu</p></div>
+                        </div>
+                        <div class="strip expl step"><span class="chip">C</span><p>Zakryj konec, tipni, porovnej, pootoč knoflíky. A opakuj to bilionkrát.</p></div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>09 / 13</span>
+                </div>
+            </section>
+
+            <!-- SLIDE 10: Otázka 8 -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · kvíz k částem 3 a 4</span>
+                    <span>otázka <b>8</b> z 10</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Otázka 8">
+                        <span class="tok pop" style="--i:1"><span class="txt c4">Ot</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c5">áz</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c1">ka</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c2"> 8</span></span>
+                        <span class="caret" style="--i:5"></span>
+                    </h2>
+
+                    <div class="content">
+                        <p class="ask pop" style="--i:7">Co se model během trénování naučí nejdřív?</p>
+                        <div class="opts">
+                            <div class="opt pop" style="--i:8"><span class="q">A</span><p>Fakta, třeba hlavní města</p></div>
+                            <div class="opt ok pop" style="--i:9"><span class="q">B</span><p>Častá slova</p></div>
+                            <div class="opt pop" style="--i:10"><span class="q">C</span><p>Programovat</p></div>
+                            <div class="opt pop" style="--i:11"><span class="q">D</span><p>Slušně odmítat</p></div>
+                        </div>
+                        <div class="strip expl step"><span class="chip">B</span><p>Nejdřív častá slova, pak gramatika, nakonec fakta a souvislosti. Pravidla mu nikdo neřekl, odvodil si je sám.</p></div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>10 / 13</span>
+                </div>
+            </section>
+
+            <!-- SLIDE 11: Otázka 9 -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · kvíz k částem 3 a 4</span>
+                    <span>otázka <b>9</b> z 10</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Otázka 9">
+                        <span class="tok pop" style="--i:1"><span class="txt c4">Ot</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c5">áz</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c1">ka</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c2"> 9</span></span>
+                        <span class="caret" style="--i:5"></span>
+                    </h2>
+
+                    <div class="content">
+                        <p class="ask pop" style="--i:7">Model po předtrénování umí jen pokračovat v textu. Co z něj udělá asistenta?</p>
+                        <div class="opts">
+                            <div class="opt pop" style="--i:8"><span class="q">A</span><p>Delší předtrénování na víc datech</p></div>
+                            <div class="opt pop" style="--i:9"><span class="q">B</span><p>Připojení k internetu</p></div>
+                            <div class="opt pop" style="--i:10"><span class="q">C</span><p>Rychlejší čipy</p></div>
+                            <div class="opt ok pop" style="--i:11"><span class="q">D</span><p>Doladění: ukázkové rozhovory a hodnocení od lidí</p></div>
+                        </div>
+                        <div class="strip expl step"><span class="chip">D</span><p>Fine-tuning a RLHF. Model se učí být užitečný, slušný a odmítat nebezpečné věci.</p></div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>11 / 13</span>
+                </div>
+            </section>
+
+            <!-- SLIDE 12: Otázka 10 -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · kvíz k částem 3 a 4</span>
+                    <span>otázka <b>10</b> z 10</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Otázka 10">
+                        <span class="tok pop" style="--i:1"><span class="txt c4">Ot</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c5">áz</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c1">ka</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c2"> 10</span></span>
+                        <span class="caret" style="--i:5"></span>
+                    </h2>
+
+                    <div class="content">
+                        <p class="ask pop" style="--i:7">Opravíte chatbotovi chybu. Naučí se to model hned i pro ostatní lidi?</p>
+                        <div class="opts">
+                            <div class="opt ok pop" style="--i:8"><span class="q">A</span><p>Ne, při používání se čísla v modelu nemění</p></div>
+                            <div class="opt pop" style="--i:9"><span class="q">B</span><p>Ano, okamžitě</p></div>
+                            <div class="opt pop" style="--i:10"><span class="q">C</span><p>Ano, ale až po restartu aplikace</p></div>
+                            <div class="opt pop" style="--i:11"><span class="q">D</span><p>Jen když mu napíšete „zapamatuj si to“</p></div>
+                        </div>
+                        <div class="strip expl step"><span class="chip">A</span><p>Trénink je jednou a draze. Při používání (inference) jsou váhy pevné. Proto má model i datum, kdy mu „skončil svět“.</p></div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>12 / 13</span>
+                </div>
+            </section>
+
+            <!-- SLIDE 13: Výsledky -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · kvíz k částem 3 a 4</span>
+                    <span><b>vyhodnocení</b></span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Výsledky">
+                        <span class="tok pop" style="--i:1"><span class="txt c4">Vý</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c5">sled</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c1">ky</span></span>
+                        <span class="caret" style="--i:4"></span>
+                    </h2>
+
+                    <div class="content">
+                        <p class="lead pop" style="--i:8">Kolik máte bodů?</p>
+                        <div class="cols three">
+                            <div class="card light pop" style="--i:9"><span class="chip c2" style="font-size:26px">9–10</span><h4 style="margin-top:20px">Celá hodina v kontextu</h4></div>
+                            <div class="card light pop" style="--i:10"><span class="chip c1" style="font-size:26px">6–8</span><h4 style="margin-top:20px">Začátek se trochu ořízl</h4></div>
+                            <div class="card light pop" style="--i:11"><span class="chip c3" style="font-size:26px">0–5</span><h4 style="margin-top:20px">Nový chat, čistý stůl</h4></div>
+                        </div>
+                        <div class="strip ask step"><span class="chip">BONUS</span><p>Zeptejte se chatbota bez vyhledávání, jaké je dnes datum. Co odpoví, a proč?</p></div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>13 / 13</span>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Deck chrome: progress bar and inline editing (hover top-left corner or press E) -->
+    <div class="progress" id="progress"></div>
+    <div class="edit-hotzone"></div>
+    <button class="edit-toggle" id="editToggle" title="Režim úprav (E)" aria-label="Režim úprav">✏️</button>
+    <div class="edit-hint">Režim úprav · klikni na text · Ctrl+S uloží soubor · E ukončí</div>
+
+    <script>
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           Scales the 1920×1080 stage and handles
+           keyboard, wheel and touch navigation.
+           "Next" first reveals any hidden .step on the
+           current slide, then moves to the next slide.
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.stage = document.getElementById('deckStage');
+                this.progress = document.getElementById('progress');
+                this.slides = this.stage.querySelectorAll('.slide');
+                this.currentSlide = 0;
+                this.setupStageScale();
+                this.setupKeyboardNav();
+                this.setupWheelNav();
+                this.setupTouchNav();
+                // Open on the slide named in the URL hash, e.g. presentation.html#3
+                this.showSlide((parseInt(location.hash.slice(1), 10) || 1) - 1);
+            }
+
+            setupStageScale() {
+                const scale = () => {
+                    const factor = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+                    const x = (window.innerWidth - 1920 * factor) / 2;
+                    const y = (window.innerHeight - 1080 * factor) / 2;
+                    this.stage.style.transform = `translate(${x}px, ${y}px) scale(${factor})`;
+                };
+                scale();
+                window.addEventListener('resize', scale);
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.target.isContentEditable || e.ctrlKey || e.metaKey) return;
+                    if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); this.next(); }
+                    else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); this.prev(); }
+                    else if (e.key === 'Home') this.showSlide(0);
+                    else if (e.key === 'End') this.showSlide(this.slides.length - 1);
+                });
+            }
+
+            setupWheelNav() {
+                let locked = false;
+                window.addEventListener('wheel', (e) => {
+                    if (locked || document.body.matches('.editing, .peek-open') || Math.abs(e.deltaY) < 20) return;
+                    locked = true;
+                    setTimeout(() => { locked = false; }, 600);
+                    e.deltaY > 0 ? this.next() : this.prev();
+                }, { passive: true });
+            }
+
+            setupTouchNav() {
+                let startX = 0;
+                window.addEventListener('touchstart', (e) => { startX = e.changedTouches[0].clientX; }, { passive: true });
+                window.addEventListener('touchend', (e) => {
+                    if (document.body.matches('.editing, .peek-open')) return;
+                    const dx = e.changedTouches[0].clientX - startX;
+                    if (Math.abs(dx) > 50) dx < 0 ? this.next() : this.prev();
+                }, { passive: true });
+            }
+
+            next() {
+                const step = this.slides[this.currentSlide].querySelector('.step:not(.shown)');
+                if (step) { step.classList.add('shown'); return; }
+                this.showSlide(this.currentSlide + 1);
+            }
+            // Going back lands on the previous slide with its steps already revealed
+            prev() { this.showSlide(this.currentSlide - 1, true); }
+
+            showSlide(index, revealSteps = false) {
+                const target = Math.max(0, Math.min(index, this.slides.length - 1));
+                if (target === this.currentSlide && this.slides[target].classList.contains('visible')) return;
+                this.currentSlide = target;
+                this.slides.forEach((slide, i) => {
+                    slide.classList.toggle('active', i === this.currentSlide);
+                    slide.classList.toggle('visible', i === this.currentSlide);
+                });
+                this.slides[target].querySelectorAll('.step').forEach((el) => el.classList.toggle('shown', revealSteps));
+                this.slides[target].dispatchEvent(new CustomEvent('slideenter', { bubbles: true }));
+                history.replaceState(null, '', '#' + (this.currentSlide + 1));
+                this.progress.style.width = `${((this.currentSlide + 1) / this.slides.length) * 100}%`;
+            }
+        }
+
+        /* ===========================================
+           INLINE EDITOR
+           E or the top-left corner toggles edit mode.
+           Edits autosave to localStorage; Ctrl+S downloads
+           the edited presentation as a new HTML file.
+           =========================================== */
+        class InlineEditor {
+            constructor(stage) {
+                this.stage = stage;
+                this.isActive = false;
+                this.selector = '.prompt span, .foot span, .txt, .id, .chip, p, h3, h4, .num, .a, .flow > div, .ctx div, .row > span:first-child, .row .p, .row .an';
+                // Saved edits only apply to the version of the file they were made on
+                this.key = 'ai101-lesson01-' + this.hash(stage.textContent);
+                const saved = localStorage.getItem(this.key);
+                if (saved) stage.innerHTML = saved;
+            }
+
+            hash(text) {
+                let h = 0;
+                for (let i = 0; i < text.length; i++) h = (h * 31 + text.charCodeAt(i)) | 0;
+                return h;
+            }
+
+            cleanHTML(html) { return html.replace(/ contenteditable="[^"]*"/g, '').replace(/(class="[^"]*?) shown"/g, '$1"'); }
+
+            toggleEditMode() {
+                this.isActive = !this.isActive;
+                document.body.classList.toggle('editing', this.isActive);
+                document.getElementById('editToggle').classList.toggle('active', this.isActive);
+                this.stage.querySelectorAll(this.selector).forEach((el) => {
+                    this.isActive ? el.setAttribute('contenteditable', 'true') : el.removeAttribute('contenteditable');
+                });
+                if (!this.isActive) this.save();
+            }
+
+            save() { localStorage.setItem(this.key, this.cleanHTML(this.stage.innerHTML)); }
+
+            exportFile() {
+                const html = '<!DOCTYPE html>\n' + this.cleanHTML(document.documentElement.outerHTML)
+                    .replace('<body class="editing">', '<body>')
+                    .replace('class="edit-toggle show active"', 'class="edit-toggle"')
+                    .replace('class="edit-toggle active"', 'class="edit-toggle"');
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+                a.download = 'presentation.html';
+                a.click();
+                URL.revokeObjectURL(a.href);
+            }
+        }
+
+        const editor = new InlineEditor(document.getElementById('deckStage'));
+        const deck = new SlidePresentation();
+
+        // 1. Click on the toggle button
+        const editToggle = document.getElementById('editToggle');
+        editToggle.addEventListener('click', () => editor.toggleEditMode());
+
+        // 2. Hotzone hover with a 400ms grace period (JS, not CSS sibling selectors)
+        const hotzone = document.querySelector('.edit-hotzone');
+        let hideTimeout = null;
+        const scheduleHide = () => {
+            hideTimeout = setTimeout(() => {
+                if (!editor.isActive) editToggle.classList.remove('show');
+            }, 400);
+        };
+        hotzone.addEventListener('mouseenter', () => { clearTimeout(hideTimeout); editToggle.classList.add('show'); });
+        hotzone.addEventListener('mouseleave', scheduleHide);
+        editToggle.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
+        editToggle.addEventListener('mouseleave', scheduleHide);
+
+        // 3. Direct click on the hotzone
+        hotzone.addEventListener('click', () => editor.toggleEditMode());
+
+        // 4. Keyboard: E toggles edit mode, Ctrl+S saves and downloads
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                editor.save();
+                editor.exportFile();
+            } else if (e.key.toLowerCase() === 'e' && !e.target.isContentEditable && !e.ctrlKey && !e.metaKey) {
+                editor.toggleEditMode();
+            }
+        });
+        document.getElementById('deckStage').addEventListener('input', () => { if (editor.isActive) editor.save(); });
+
+        /* ===========================================
+           SLIDE ANIMATIONS AND OVERLAYS
+           Everything is delegated from the stage, so it
+           survives the inline editor restoring saved HTML.
+           =========================================== */
+        const stage = document.getElementById('deckStage');
+        const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        let animRun = 0;   // bumped on every slide change; running animations stop when it moves on
+
+        // --- "Jak vzniká text": the sentence grows one token at a time
+        const GEN_STEPS = [
+            { options: [['České', 62], ['Česka', 31], ['Evropy', 2]], token: ' České', color: 'c3' },
+            { options: [['republiky', 97], ['země', 2], ['spořitelny', 1]], token: ' republiky', color: 'c1' },
+            { options: [['.', 54], ['a', 31], [',', 9]], token: '.', color: 'c2' }
+        ];
+        async function playGeneration(root, delay) {
+            const run = ++animRun;
+            const text = root.querySelector('.gen');
+            const caret = text.querySelector('.caret');
+            const panel = root.querySelector('.genpanel');
+            const rows = [...panel.querySelectorAll('.row')];
+            const cards = [...root.closest('.slide').querySelectorAll('.flow > div')];
+            const light = (n) => cards.forEach((card, i) => card.classList.toggle('on', i === n));
+            const pause = async (ms) => { await wait(ms); return run === animRun; };
+
+            text.querySelectorAll('.added').forEach((el) => el.remove());
+            panel.classList.remove('picked');
+            rows.forEach((row) => {
+                row.classList.remove('pick');
+                row.children[0].textContent = '…';
+                row.querySelector('i').style.width = '0%';
+                row.children[2].textContent = '';
+            });
+            light(-1);
+            if (!await pause(delay)) return;
+
+            for (const step of GEN_STEPS) {
+                light(0);
+                if (!await pause(700)) return;
+                light(1);
+                panel.classList.remove('picked');
+                rows.forEach((row, i) => {
+                    row.classList.remove('pick');
+                    row.children[0].textContent = step.options[i][0];
+                    row.querySelector('i').style.width = Math.max(step.options[i][1], 1.5) + '%';
+                    row.children[2].textContent = step.options[i][1] + ' %';
+                });
+                if (!await pause(1300)) return;
+                light(2);
+                rows[0].classList.add('pick');
+                panel.classList.add('picked');
+                if (!await pause(900)) return;
+                light(3);
+                const chip = document.createElement('span');
+                chip.className = `chip ${step.color} added born`;
+                chip.textContent = step.token;
+                text.insertBefore(chip, caret);
+                if (!await pause(800)) return;
+                light(4);
+                if (!await pause(600)) return;
+            }
+            light(-1);
+        }
+
+        // --- training loop: the highlight walks through the five steps
+        async function playLoop(root) {
+            const run = ++animRun;
+            const cards = [...root.children];
+            await wait(1600);
+            for (let n = 0; run === animRun; n = (n + 1) % cards.length) {
+                cards.forEach((card, i) => card.classList.toggle('on', i === n));
+                await wait(n === cards.length - 1 ? 700 : 1000);
+            }
+            cards.forEach((card) => card.classList.remove('on'));
+        }
+
+        function startAnimations(slide) {
+            animRun++;
+            closePeek();
+            const root = slide.querySelector('[data-anim]');
+            if (!root) return;
+            root.dataset.anim === 'generate' ? playGeneration(root, 1500) : playLoop(root);
+        }
+        stage.addEventListener('slideenter', (e) => startAnimations(e.target));
+
+        // --- click-to-open examples
+        function closePeek() {
+            stage.querySelectorAll('.peek:not([hidden])').forEach((el) => { el.hidden = true; });
+            document.body.classList.remove('peek-open');
+        }
+        stage.addEventListener('click', (e) => {
+            if (editor.isActive) return;
+            const opener = e.target.closest('[data-peek]');
+            if (opener) {
+                opener.blur();
+                document.getElementById('peek-' + opener.dataset.peek).hidden = false;
+                document.body.classList.add('peek-open');
+            } else if (e.target.closest('.peek')) {
+                closePeek();
+            } else if (e.target.closest('[data-anim="generate"]')) {
+                playGeneration(e.target.closest('[data-anim="generate"]'), 200);
+            }
+        });
+        // Capture phase: with an example open, any navigation key just closes it
+        document.addEventListener('keydown', (e) => {
+            if (!document.body.classList.contains('peek-open')) return;
+            if (['Escape', 'ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', ' ', 'Enter'].includes(e.key)) {
+                e.preventDefault();
+                e.stopPropagation();
+                closePeek();
+            }
+        }, true);
+
+        // --- temperature playground
+        const TEMP_OPTIONS = [['řízek', 3.0, 'c2'], ['guláš', 2.4, 'c4'], ['pizzu', 2.2, 'c1'], ['salát', 1.0, 'c5'], ['zmrzlinu', 0.0, 'c5'], ['ponožku', -0.5, 'c3']];
+        function tempProbabilities(t) {
+            if (t < 0.05) return TEMP_OPTIONS.map((_, i) => (i === 0 ? 1 : 0));   // no sampling: the favourite always wins
+            const weights = TEMP_OPTIONS.map((option) => Math.exp(option[1] / t));
+            const total = weights.reduce((a, b) => a + b, 0);
+            return weights.map((weight) => weight / total);
+        }
+        function renderTemperature(root, t) {
+            const probabilities = tempProbabilities(t);
+            root.querySelector('input[type=range]').value = t;
+            root.querySelector('.val').textContent = 'T = ' + t.toFixed(1).replace('.', ',');
+            root.querySelectorAll('.presets button').forEach((button) => button.classList.toggle('on', Math.abs(parseFloat(button.dataset.temp) - t) < 0.05));
+            root.querySelectorAll('.temppanel .row').forEach((row, i) => {
+                const percent = probabilities[i] * 100;
+                row.querySelector('i').style.width = (percent > 0 ? Math.max(percent, 0.6) : 0) + '%';
+                row.children[2].textContent = (percent > 0 && percent < 1 ? percent.toFixed(1).replace('.', ',') : Math.round(percent)) + ' %';
+            });
+            root.querySelector('.mode').textContent =
+                t < 0.05 ? 'Deterministicky: stejná otázka, pokaždé stejná odpověď.' :
+                t <= 0.5 ? 'Nízká teplota: předvídatelný, nudný, opakuje se.' :
+                t <= 1.1 ? 'Střední teplota: většinou rozumné, občas překvapí.' :
+                           'Vysoká teplota: kreativní, až nesmyslný.';
+            root.querySelector('.samples').replaceChildren();
+        }
+        function sampleTemperature(root, count) {
+            const probabilities = tempProbabilities(parseFloat(root.querySelector('input[type=range]').value));
+            const box = root.querySelector('.samples');
+            box.replaceChildren();
+            for (let n = 0; n < count; n++) {
+                let r = Math.random(), pick = 0;
+                while (pick < probabilities.length - 1 && r >= probabilities[pick]) { r -= probabilities[pick]; pick++; }
+                const chip = document.createElement('span');
+                chip.className = `chip ${TEMP_OPTIONS[pick][2]} born`;
+                chip.style.animationDelay = n * 0.08 + 's';
+                chip.textContent = TEMP_OPTIONS[pick][0];
+                box.appendChild(chip);
+            }
+        }
+        stage.addEventListener('input', (e) => {
+            if (e.target.matches('.temp input[type=range]')) renderTemperature(e.target.closest('.tempdemo'), parseFloat(e.target.value));
+        });
+        // Give the keyboard back to the deck as soon as the slider is released
+        stage.addEventListener('change', (e) => { if (e.target.matches('.temp input[type=range]')) e.target.blur(); });
+        stage.addEventListener('click', (e) => {
+            if (editor.isActive) return;
+            const preset = e.target.closest('[data-temp]');
+            const sample = e.target.closest('[data-sample]');
+            if (preset) { preset.blur(); renderTemperature(preset.closest('.tempdemo'), parseFloat(preset.dataset.temp)); }
+            if (sample) { sample.blur(); sampleTemperature(sample.closest('.tempdemo'), parseInt(sample.dataset.sample, 10)); }
+        });
+        stage.addEventListener('slideenter', (e) => {
+            const demo = e.target.querySelector('.tempdemo');
+            if (demo) renderTemperature(demo, 0.7);
+        });
+        // While the slider has focus, arrow keys move it instead of changing slides
+        document.addEventListener('keydown', (e) => { if (e.target.matches && e.target.matches('input[type=range]')) e.stopPropagation(); }, true);
+
+        // --- capability table: hovering or focusing a column name shows its definition
+        function showDefinition(head) {
+            const table = head.closest('.cmp');
+            const box = table.parentElement.querySelector('.cmpdef');
+            table.querySelectorAll('.head').forEach((el) => el.classList.toggle('hot', el === head));
+            box.querySelector('h3').textContent = head.dataset.title;
+            box.querySelector('p').textContent = head.dataset.def;
+        }
+        ['mouseover', 'focusin', 'click'].forEach((type) => stage.addEventListener(type, (e) => {
+            const head = e.target.closest('.cmp .head');
+            if (head && !editor.isActive) showDefinition(head);
+        }));
+
+        // The deck was created above, before these listeners existed
+        startAnimations(stage.querySelector('.slide.visible'));
+    </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Pracovní a lektorské soubory – nejsou pro studenty
+*.md
+!README.md
+*.md.save
+*.swp
+.claude/
+.atuin/
+.frontend-slides/
+
+# Zdrojové obrázky (v HTML jsou už vložené)
+lesson_00/*.jpg
+lesson_00/*.png
+lesson_00/*.gif
+lesson_00/myProjects/

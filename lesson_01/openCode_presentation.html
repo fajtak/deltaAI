@@ -1,0 +1,2558 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 101 · Lekce 01</title>
+    
+    <!-- Fonts: Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (THEME)
+           =========================================== */
+        :root {
+            --bg-deep: #0a0a0f;
+            --bg-surface: #12121a;
+            --bg-card: #1a1a25;
+            --neural-cyan: #00f5d4;
+            --neural-magenta: #f72585;
+            --neural-yellow: #fee440;
+            --text-primary: #e0e0e0;
+            --text-dim: #6b7280;
+            --grid-line: rgba(0, 245, 212, 0.06);
+            --border: rgba(0, 245, 212, 0.15);
+            
+            --font-display: 'Orbitron', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.6s;
+        }
+
+        /* ===========================================
+           VIEWPORT BASE (MANDATORY)
+           =========================================== */
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background: var(--bg-deep);
+        }
+
+        .deck-viewport {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            background: var(--bg-deep);
+        }
+
+        .deck-stage {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            transform-origin: 0 0;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            display: block;
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            background: var(--bg-deep);
+        }
+
+        .slide.active,
+        .slide.visible {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 1;
+        }
+
+        /* ===========================================
+           NEURAL TERMINAL STYLES
+           =========================================== */
+        
+        /* Animated grid background */
+        .grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 60px 60px;
+            opacity: 0.5;
+            animation: gridScroll 30s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes gridScroll {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(60px, 60px); }
+        }
+
+        /* Neural network nodes */
+        .node {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--neural-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--neural-cyan), 0 0 30px var(--neural-cyan);
+            animation: pulse 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .node-magenta { background: var(--neural-magenta); box-shadow: 0 0 15px var(--neural-magenta); }
+        .node-yellow { background: var(--neural-yellow); box-shadow: 0 0 15px var(--neural-yellow); }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+        }
+
+        /* Slide content */
+        .slide-content {
+            position: relative;
+            z-index: 10;
+            padding: 80px 120px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Typography */
+        .slide-title {
+            font-family: var(--font-display);
+            font-size: 72px;
+            font-weight: 900;
+            color: var(--neural-cyan);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 24px;
+            text-shadow: 0 0 30px rgba(0, 245, 212, 0.4);
+        }
+
+        .slide-subtitle {
+            font-family: var(--font-mono);
+            font-size: 28px;
+            color: var(--text-primary);
+            margin-bottom: 32px;
+        }
+
+        .slide-label {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--neural-magenta);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 16px;
+        }
+
+        .slide-text {
+            font-family: var(--font-mono);
+            font-size: 20px;
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        /* Terminal styling */
+        .terminal-window {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .terminal-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #ff5f57; }
+        .dot-yellow { background: #ffbd2e; }
+        .dot-green { background: #28ca41; }
+
+        .terminal-title {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-left: 12px;
+        }
+
+        .terminal-body {
+            padding: 20px;
+            font-family: var(--font-mono);
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+
+        .terminal-body .prompt {
+            color: var(--neural-cyan);
+        }
+
+        .terminal-body .string {
+            color: var(--neural-yellow);
+        }
+
+        .terminal-body .comment {
+            color: var(--text-dim);
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin: 24px 0;
+        }
+
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        .card-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--neural-cyan);
+            margin-bottom: 8px;
+        }
+
+        .card-text {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+
+        /* Two column layout */
+        .cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            margin: 24px 0;
+        }
+
+        /* Stats */
+        .stat-row {
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+            margin: 32px 0;
+        }
+
+        .stat {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px 40px;
+            text-align: center;
+        }
+
+        .stat-num {
+            font-family: var(--font-display);
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--neural-cyan);
+            text-shadow: 0 0 20px rgba(0, 245, 212, 0.3);
+        }
+
+        .stat-label {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 8px;
+        }
+
+        /* Flow diagram */
+        .flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 32px 0;
+            flex-wrap: wrap;
+        }
+
+        .flow-step {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 24px;
+            font-family: var(--font-mono);
+            font-size: 16px;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .flow-arrow {
+            color: var(--neural-cyan);
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        /* Code blocks */
+        pre {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .code-keyword { color: var(--neural-magenta); }
+        .code-string { color: var(--neural-yellow); }
+        .code-comment { color: var(--text-dim); }
+        .code-func { color: var(--neural-cyan); }
+
+        /* List styling */
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            font-family: var(--font-mono);
+            font-size: 18px;
+            color: var(--text-primary);
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--neural-cyan);
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin: 4px;
+        }
+
+        .tag-cyan { background: rgba(0, 245, 212, 0.15); color: var(--neural-cyan); }
+        .tag-magenta { background: rgba(247, 37, 133, 0.15); color: var(--neural-magenta); }
+        .tag-yellow { background: rgba(254, 228, 64, 0.15); color: var(--neural-yellow); }
+
+        /* Blockquote */
+        blockquote {
+            border-left: 3px solid var(--neural-cyan);
+            background: rgba(0, 245, 212, 0.05);
+            padding: 16px 24px;
+            border-radius: 0 8px 8px 0;
+            margin: 16px 0;
+            font-family: var(--font-mono);
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+
+        /* Interactive elements */
+        .btn {
+            background: var(--neural-cyan);
+            color: var(--bg-deep);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            box-shadow: 0 0 20px var(--neural-cyan);
+            transform: translateY(-2px);
+        }
+
+        .btn-magenta { background: var(--neural-magenta); }
+        .btn-magenta:hover { box-shadow: 0 0 20px var(--neural-magenta); }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--neural-cyan), var(--neural-magenta));
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+
+        /* Page counter */
+        .page-counter {
+            position: fixed;
+            bottom: 20px;
+            right: 40px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text-dim);
+            z-index: 1000;
+        }
+
+        .page-counter span {
+            color: var(--neural-cyan);
+        }
+
+        /* ===========================================
+           REVEAL ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .reveal:nth-child(3) { transition-delay: 0.3s; }
+        .reveal:nth-child(4) { transition-delay: 0.4s; }
+        .reveal:nth-child(5) { transition-delay: 0.5s; }
+
+        /* ===========================================
+           TITLE SLIDE SPECIAL STYLES
+           =========================================== */
+        .title-slide .slide-content {
+            align-items: center;
+            text-align: center;
+        }
+
+        .title-slide .slide-title {
+            font-size: 96px;
+            margin-bottom: 32px;
+        }
+
+        .title-slide .slide-subtitle {
+            font-size: 32px;
+            margin-bottom: 48px;
+        }
+
+        /* Terminal cursor animation */
+        .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1em;
+            background: var(--neural-cyan);
+            margin-left: 8px;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Edit mode toggle */
+        .edit-hotzone {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            z-index: 10000;
+            cursor: pointer;
+        }
+
+        .edit-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            color: var(--neural-cyan);
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10001;
+        }
+
+        .edit-toggle.show,
+        .edit-toggle.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .edit-toggle.active {
+            background: var(--neural-cyan);
+            color: var(--bg-deep);
+        }
+
+        /* ===========================================
+           INTERACTIVE ELEMENTS
+           =========================================== */
+
+        /* Tokenizer */
+        .token-input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-family: var(--font-mono);
+            font-size: 16px;
+            color: var(--neural-cyan);
+            outline: none;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+        }
+        .token-input:focus {
+            border-color: var(--neural-cyan);
+            box-shadow: 0 0 10px rgba(0, 245, 212, 0.2);
+        }
+        .token-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            min-height: 36px;
+            align-items: center;
+        }
+        .token-chip {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 700;
+            animation: tokenPop 0.2s ease-out;
+        }
+        @keyframes tokenPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .tc-0 { background: rgba(0,245,212,0.2); color: var(--neural-cyan); }
+        .tc-1 { background: rgba(247,37,133,0.2); color: var(--neural-magenta); }
+        .tc-2 { background: rgba(254,228,64,0.2); color: var(--neural-yellow); }
+        .tc-3 { background: rgba(0,245,212,0.1); color: var(--neural-cyan); border: 1px solid rgba(0,245,212,0.3); }
+        .tc-4 { background: rgba(247,37,133,0.1); color: var(--neural-magenta); border: 1px solid rgba(247,37,133,0.3); }
+        .tc-5 { background: rgba(254,228,64,0.1); color: var(--neural-yellow); border: 1px solid rgba(254,228,64,0.3); }
+        .token-count {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-top: 8px;
+        }
+
+        /* Embedding Canvas */
+        .embedding-wrap {
+            position: relative;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .embedding-wrap canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .embedding-tooltip {
+            position: absolute;
+            background: var(--bg-card);
+            border: 1px solid var(--neural-cyan);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--neural-cyan);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s;
+            z-index: 100;
+            white-space: nowrap;
+        }
+        .embedding-legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+        .legend-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        /* Sliders */
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 10px 0;
+        }
+        .slider-lbl {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text-dim);
+            min-width: 110px;
+        }
+        .slider-val {
+            font-family: var(--font-mono);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--neural-cyan);
+            min-width: 48px;
+            text-align: right;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            flex: 1;
+            height: 6px;
+            background: var(--bg-card);
+            border-radius: 3px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: var(--neural-cyan);
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--neural-cyan);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: var(--neural-cyan);
+            cursor: pointer;
+            border: none;
+        }
+        .prob-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px 0;
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+        .prob-label {
+            min-width: 90px;
+            color: var(--text-primary);
+            text-align: right;
+        }
+        .prob-track {
+            flex: 1;
+            height: 18px;
+            background: var(--bg-card);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .prob-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.35s var(--ease-out-expo), background 0.3s;
+        }
+        .prob-pct {
+            min-width: 48px;
+            color: var(--neural-yellow);
+            font-weight: 700;
+        }
+
+        /* Attention Heatmap */
+        .heatmap-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .heatmap-row {
+            display: flex;
+            gap: 2px;
+            align-items: center;
+        }
+        .heatmap-word {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text-primary);
+            min-width: 80px;
+            text-align: right;
+            padding-right: 8px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .heatmap-word:hover, .heatmap-word.hl { color: var(--neural-cyan); }
+        .heatmap-cell {
+            width: 34px; height: 26px;
+            border-radius: 3px;
+            transition: background 0.3s, transform 0.15s;
+            cursor: pointer;
+        }
+        .heatmap-cell:hover { transform: scale(1.15); z-index: 10; }
+        .heatmap-header {
+            display: flex;
+            gap: 2px;
+            margin-left: 88px;
+            margin-bottom: 4px;
+        }
+        .heatmap-header span {
+            width: 34px;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+        .heatmap-info {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-top: 8px;
+            min-height: 20px;
+        }
+
+        /* Chat Simulator */
+        .chat-box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        .chat-msg { margin-bottom: 10px; animation: chatIn 0.25s ease-out; }
+        @keyframes chatIn {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .chat-role {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 3px;
+        }
+        .chat-role.user { color: var(--neural-magenta); }
+        .chat-role.assistant { color: var(--neural-cyan); }
+        .chat-role.system { color: var(--neural-yellow); }
+        .chat-text {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        .chat-input-row { display: flex; gap: 8px; }
+        .chat-input {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--neural-cyan);
+            outline: none;
+        }
+        .chat-input:focus { border-color: var(--neural-cyan); }
+        .chat-api {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            max-height: 160px;
+            overflow-y: auto;
+            line-height: 1.7;
+        }
+        .api-k { font-weight: 700; }
+        .api-k.user { color: var(--neural-magenta); }
+        .api-k.assistant { color: var(--neural-cyan); }
+        .api-k.system { color: var(--neural-yellow); }
+        .api-s { color: var(--neural-yellow); }
+
+        /* System Prompt Builder */
+        .sp-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .sp-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .sp-btn:hover { border-color: var(--neural-cyan); color: var(--text-primary); }
+        .sp-btn.on {
+            background: rgba(0,245,212,0.15);
+            border-color: var(--neural-cyan);
+            color: var(--neural-cyan);
+            font-weight: 700;
+        }
+        .sp-result {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 80px;
+        }
+    </style>
+</head>
+<body>
+    <div class="deck-viewport">
+        <main class="deck-stage" id="deckStage">
+            
+            <!-- ==================== SLIDE 1: TITLE ==================== -->
+            <section class="slide title-slide active">
+                <div class="grid-bg"></div>
+                <div class="node" style="top: 15%; left: 10%;"></div>
+                <div class="node node-magenta" style="top: 25%; right: 15%;"></div>
+                <div class="node node-yellow" style="bottom: 20%; left: 20%;"></div>
+                <div class="node" style="bottom: 30%; right: 10%;"></div>
+                
+                <div class="slide-content">
+                    <div class="reveal" style="margin-bottom: 16px;">
+                        <span class="tag tag-cyan">SESSION 2026</span>
+                        <span class="tag tag-magenta">25 SLIDES</span>
+                    </div>
+                    <h1 class="slide-title reveal">AI 101</h1>
+                    <p class="slide-subtitle reveal">Jak fungují velké jazykové modely</p>
+                    <p class="slide-text reveal" style="color: var(--neural-magenta); letter-spacing: 0.2em; text-transform: uppercase;">
+                        > Od tokenů po tool use<span class="cursor"></span>
+                    </p>
+                    
+                    <div class="reveal" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 48px; max-width: 1200px;">
+                        <span class="tag tag-cyan">Tokenizace</span>
+                        <span class="tag tag-magenta">Transformer</span>
+                        <span class="tag tag-yellow">Embedding</span>
+                        <span class="tag tag-cyan">Trénování</span>
+                        <span class="tag tag-magenta">Attention</span>
+                        <span class="tag tag-yellow">Sampling</span>
+                        <span class="tag tag-cyan">Chat</span>
+                        <span class="tag tag-magenta">Halucinace</span>
+                        <span class="tag tag-yellow">Tool Use</span>
+                        <span class="tag tag-cyan">RLHF</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 2: CO JE AI ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 01</div>
+                    <h2 class="slide-title reveal">Co je vlastně <em style="color: var(--neural-magenta);">umělá inteligence</em>?</h2>
+                    
+                    <div class="cols">
+                        <div class="card reveal">
+                            <div class="card-icon">🧠</div>
+                            <div class="card-title">Užší definice (AI)</div>
+                            <div class="card-text">Systémy, které demonstrují chování spojené s lidským myšlením – plánování, učení, porozumění jazyku, rozhodování.</div>
+                        </div>
+                        <div class="card reveal">
+                            <div class="card-icon">📊</div>
+                            <div class="card-title">Machine Learning</div>
+                            <div class="card-text">Podmnožina AI: algoritmy, které se zlepšují z dat, aniž by byly explicitně naprogramovány pro každý scénář.</div>
+                        </div>
+                    </div>
+                    
+                    <blockquote class="reveal">
+                        <strong>Klíčový koncept:</strong> Moderní AI <em>nemyslí</em> jako člověk. Jsou to statistické modely, které predikují pravděpodobnost dalšího prvku na základě vzorů v datech.
+                    </blockquote>
+
+                    <div class="reveal" style="margin-top: 24px;">
+                        <div style="font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); margin-bottom: 8px;">Hierarchie pojmů:</div>
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                            <div style="background: rgba(0,245,212,0.15); border: 1px solid var(--neural-cyan); border-radius: 6px; padding: 8px 40px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-cyan);">AGI (obecná AI) – zatím neexistuje</div>
+                            <div style="color: var(--text-dim);">↓</div>
+                            <div style="background: rgba(247,37,133,0.15); border: 1px solid var(--neural-magenta); border-radius: 6px; padding: 8px 60px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-magenta);">AI – umělá inteligence</div>
+                            <div style="color: var(--text-dim);">↓</div>
+                            <div style="background: rgba(254,228,64,0.15); border: 1px solid var(--neural-yellow); border-radius: 6px; padding: 8px 80px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-yellow);">Machine Learning</div>
+                            <div style="color: var(--text-dim);">↓</div>
+                            <div style="background: rgba(0,245,212,0.08); border: 1px solid rgba(0,245,212,0.3); border-radius: 6px; padding: 8px 100px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-cyan);">Deep Learning</div>
+                            <div style="color: var(--text-dim);">↓</div>
+                            <div style="background: rgba(247,37,133,0.08); border: 1px solid rgba(247,37,133,0.3); border-radius: 6px; padding: 8px 120px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-magenta);">LLM (dnes)</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 3: CO JSOU LLM ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 02</div>
+                    <h2 class="slide-title reveal">Co jsou <em style="color: var(--neural-yellow);">Large Language Models</em>?</h2>
+                    <p class="slide-subtitle reveal">Neuronové sítě natrénované na obrovských objemech textu</p>
+                    
+                    <div class="card-grid">
+                        <div class="card reveal">
+                            <div class="card-icon">📐</div>
+                            <div class="card-title">Architektura</div>
+                            <div class="card-text">Transformer – mechanismus attention, který váží vztahy mezi slovy v celém kontextu.</div>
+                        </div>
+                        <div class="card reveal">
+                            <div class="card-icon">📚</div>
+                            <div class="card-title">Data</div>
+                            <div class="card-text">Knihy, webové stránky, Wikipedie, kód… biliony tokenů textu.</div>
+                        </div>
+                        <div class="card reveal">
+                            <div class="card-icon">🎯</div>
+                            <div class="card-title">Cíl</div>
+                            <div class="card-text">Predikce dalšího tokenu. Zdánlivě jednoduchý úkol, přesto vede k emergentním schopnostem.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="terminal-window reveal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot dot-red"></div>
+                            <div class="terminal-dot dot-yellow"></div>
+                            <div class="terminal-dot dot-green"></div>
+                            <span class="terminal-title">principle.py</span>
+                        </div>
+                        <div class="terminal-body">
+                            <span class="comment"># Základní princip – autocomplete na steroidech</span><br>
+                            <span class="prompt">input:</span> <span class="string">"Velkým jazykovým modelem je"</span><br>
+                            <span class="prompt">output:</span> [<span class="string">"systém"</span> 0.34, <span class="string">"typ"</span> 0.21, <span class="string">"nástroj"</span> 0.15, ...]
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 4: TRANSFORMER ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 03</div>
+                    <h2 class="slide-title reveal">Architektura <em style="color: var(--neural-cyan);">Transformer</em></h2>
+                    <p class="slide-subtitle reveal">Klíčový vynález z roku 2017 ("Attention Is All You Need")</p>
+                    
+                    <div class="flow reveal">
+                        <div class="flow-step">📥 Vstupní text</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">🔢 Tokenizace</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">📊 Embedding</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">🔄 Transformer</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">📤 Predikce</div>
+                    </div>
+                    
+                    <div class="cols">
+                        <div class="card reveal">
+                            <div class="card-title">Multi-Head Attention</div>
+                            <div class="card-text">Každá vrstva "pozornosti" se dívá na vztahy mezi všemi tokeny současně. Různé "hlavy" sledují různé typy vztahů.</div>
+                        </div>
+                        <div class="card reveal">
+                            <div class="card-title">Feed-Forward sítě</div>
+                            <div class="card-text">Po attention vrstvě každý token prochází neuronovou sítí, která zpracovává informace a připravuje predikci.</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-row reveal" style="margin-top: 24px;">
+                        <div class="stat">
+                            <div class="stat-num">2017</div>
+                            <div class="stat-label">Rok vynálezu (Google)</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-num">175B</div>
+                            <div class="stat-label">Parametrů GPT-3</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-num">96</div>
+                            <div class="stat-label">Transformer vrstev (GPT-4 odhad)</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-num">#1</div>
+                            <div class="stat-label">Architektura pro NLP</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 5: TOKENIZACE ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 04</div>
+                    <h2 class="slide-title reveal">Tokenizace – Jak AI <em style="color: var(--neural-yellow);">čte</em> text</h2>
+                    <p class="slide-subtitle reveal">Model nepracuje se slovy, ale s <em style="color: var(--neural-magenta);">tokeny</em></p>
+                    
+                    <div class="terminal-window reveal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot dot-red"></div>
+                            <div class="terminal-dot dot-yellow"></div>
+                            <div class="terminal-dot dot-green"></div>
+                            <span class="terminal-title">tokenizer_interactive.py</span>
+                        </div>
+                        <div class="terminal-body">
+                            <span class="comment"># Zadejte text a sledujte, jak se rozdělí na tokeny:</span><br>
+                            <input class="token-input" id="tokenInput" type="text" value="Velkým jazykovým modelem je" placeholder="Napište něco..." autocomplete="off" spellcheck="false"><br>
+                            <div class="token-display" id="tokenDisplay"></div>
+                            <div class="token-count" id="tokenCount"></div>
+                        </div>
+                    </div>
+                    
+                    <blockquote class="reveal">
+                        <strong>BPE (Byte Pair Encoding):</strong> Často používaná slova = 1 token, neznámé = rozdělené na podtokeny. Zkuste napsat český vs anglický text!
+                    </blockquote>
+
+                    <div class="reveal" style="margin-top: 16px;">
+                        <div style="font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); margin-bottom: 8px;">Příklady tokenizace:</div>
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <div class="terminal-window" style="flex: 1; min-width: 280px;">
+                                <div class="terminal-body" style="font-size: 13px;">
+                                    <span style="color: var(--neural-cyan);">"Ahoj"</span> → 1 token<br>
+                                    <span style="color: var(--neural-magenta);">"Programování"</span> → 4 tokeny<br>
+                                    <span style="color: var(--neural-yellow);">"AI"</span> → 1 token
+                                </div>
+                            </div>
+                            <div class="terminal-window" style="flex: 1; min-width: 280px;">
+                                <div class="terminal-body" style="font-size: 13px;">
+                                    <span style="color: var(--neural-cyan);">"Hello"</span> → 1 token<br>
+                                    <span style="color: var(--neural-magenta);">"Programming"</span> → 3 tokeny<br>
+                                    <span style="color: var(--neural-yellow);">"🤖"</span> → 1-2 tokeny
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 6: TOKENIZACE DETAIL ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 05</div>
+                    <h2 class="slide-title reveal">Tokenizace – <em style="color: var(--neural-cyan);">podrobnosti</em></h2>
+                    
+                    <div class="cols">
+                        <div>
+                            <h3 class="reveal" style="font-family: var(--font-mono); color: var(--neural-cyan); margin-bottom: 16px;">Jak BPE funguje</h3>
+                            <ul class="reveal">
+                                <li>Začni bajty (0-255)</li>
+                                <li>Najdi nejčastější pár bajtů</li>
+                                <li>Slouč ho v nový token</li>
+                                <li>Opakuj, dokud nedosáhneš limitu slovníku</li>
+                            </ul>
+                            
+                            <div class="terminal-window reveal" style="margin-top: 16px;">
+                                <div class="terminal-body">
+                                    <span class="comment"># Český text bývá méně efektivní:</span><br>
+                                    <span class="string">"Ahoj světe"</span> → [6 tokenů]<br>
+                                    <span class="string">"Hello world"</span> → [2 tokeny]<br><br>
+                                    1 token ≈ 4 znaky v angličtině<br>
+                                    1 token ≈ 2-3 znaky v češtině
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="reveal" style="font-family: var(--font-mono); color: var(--neural-magenta); margin-bottom: 16px;">Proč je to důležité?</h3>
+                            <div class="card reveal">
+                                <div class="card-title">💡 Kontextové okno</div>
+                                <div class="card-text">Maximální počet tokenů, které model "vidí". GPT-4: 128K ≈ 96K slov ≈ kniha.</div>
+                            </div>
+                            <div class="card reveal" style="margin-top: 16px;">
+                                <div class="card-title">💰 Ceník</div>
+                                <div class="card-text">API se účtuje za tokeny. Více tokenů = vyšší náklady.</div>
+                            </div>
+                            <div class="card reveal" style="margin-top: 16px;">
+                                <div class="card-title">🌍 Jazyková nerovnost</div>
+                                <div class="card-text">Angličtina má nejlepší pokrytí. Čeština vyžaduje více tokenů pro stejný obsah.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 7: EMBEDDING ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 06</div>
+                    <h2 class="slide-title reveal">Embedding – Čísla za <em style="color: var(--neural-yellow);">slovy</em></h2>
+                    <p class="slide-subtitle reveal">Každý token se převede na vektor v multidimenzionálním prostoru</p>
+                    
+                    <div class="embedding-wrap reveal" style="height: 380px;">
+                        <canvas id="embeddingCanvas"></canvas>
+                        <div class="embedding-tooltip" id="embTooltip"></div>
+                    </div>
+                    <div class="embedding-legend reveal">
+                        <span><span class="legend-dot" style="background:var(--neural-cyan);"></span>Zvířata</span>
+                        <span><span class="legend-dot" style="background:var(--neural-magenta);"></span>Barvy</span>
+                        <span><span class="legend-dot" style="background:var(--neural-yellow);"></span>Rychlost</span>
+                        <span><span class="legend-dot" style="background:#7c3aed;"></span>Jídlo</span>
+                    </div>
+                    
+                    <blockquote class="reveal" style="margin-top: 12px;">
+                        V reálném modelu jsou vektory 768–1536 rozměrové. My vidíme jen 2D projekci. Pohybujte myší nad body!
+                    </blockquote>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 8: TRAINING OVERVIEW ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 07</div>
+                    <h2 class="slide-title reveal">🏋️ Trénování LLM – <em style="color: var(--neural-magenta);">Velký přehled</em></h2>
+                    
+                    <div class="flow reveal">
+                        <div class="flow-step">📚 Biliony tokenů</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">🔀 Náhodné batche</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">🎯 Forward pass</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">📉 Výpočet chyby</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">⬆️ Backpropagation</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">🔄 Aktualizace vah</div>
+                    </div>
+                    
+                    <div class="stat-row reveal">
+                        <div class="stat">
+                            <div class="stat-num">~$100M</div>
+                            <div class="stat-label">Náklady na trénování GPT-4</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-num">~25K</div>
+                            <div class="stat-label">GPU (A100) na týdny</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-num">~10T</div>
+                            <div class="stat-label">tokenů v trénovacím setu</div>
+                        </div>
+                    </div>
+
+                    <div class="cols reveal" style="margin-top: 32px;">
+                        <div class="card">
+                            <div class="card-title">⚡ Proč tolik výpočtů?</div>
+                            <div class="card-text">Jeden forward pass přes 175B parametrů = miliardy operací s plovoucí desetinnou čárkou. Opakuje se to bilionykrát.</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🌍 Energetická stopa</div>
+                            <div class="card-text">Trénování GPT-4 spotřebovalo ~50 GWh elektřiny ≈ spotřeba ~4 000 českých domácností za rok.</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">📈 Zrychlení</div>
+                            <div class="card-text">Výpočetní výkon pro AI se zdvojnásobuje každých ~6 měsíců. Co bylo nemožné v 2020, je dnes na mobilu.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 9: NEXT TOKEN PREDICTION ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 08</div>
+                    <h2 class="slide-title reveal">Trénování – <em style="color: var(--neural-cyan);">Predikce dalšího tokenu</em></h2>
+                    <p class="slide-subtitle reveal">Jediný trénovací cíl, ze kterého vyrůstají všechny schopnosti</p>
+                    
+                    <div class="terminal-window reveal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot dot-red"></div>
+                            <div class="terminal-dot dot-yellow"></div>
+                            <div class="terminal-dot dot-green"></div>
+                            <span class="terminal-title">next_token.py</span>
+                        </div>
+                        <div class="terminal-body">
+                            <span class="prompt">>>> </span>predict_next(<span class="string">"Velkým jazykovým modelem je"</span>)<br><br>
+                            <span style="color: var(--neural-cyan);">1.</span> <span class="string">"systém"</span> <span style="color: var(--neural-yellow);">34%</span> ████████████<br>
+                            <span style="color: var(--neural-cyan);">2.</span> <span class="string">"typ"</span> <span style="color: var(--neural-yellow);">21%</span> ███████<br>
+                            <span style="color: var(--neural-cyan);">3.</span> <span class="string">"nástroj"</span> <span style="color: var(--neural-yellow);">15%</span> █████<br>
+                            <span style="color: var(--neural-cyan);">4.</span> <span class="string">"program"</span> <span style="color: var(--neural-yellow);">12%</span> ████<br>
+                            <span style="color: var(--neural-cyan);">5.</span> <span class="string">"model"</span> <span style="color: var(--neural-yellow);">8%</span> ███
+                        </div>
+                    </div>
+                    
+                    <blockquote class="reveal">
+                        Princip: Model na základě kontextu předpovídá pravděpodobnost každého tokenu ve slovníku. Pak jeden vybere (podle sampling strategie).
+                    </blockquote>
+
+                    <div class="reveal" style="margin-top: 20px;">
+                        <div style="font-family: var(--font-mono); font-size: 13px; color: var(--neural-yellow); margin-bottom: 8px;">Emergentní schopnosti (z predikce dalšího tokenu):</div>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <span class="tag tag-cyan">Matematika</span>
+                            <span class="tag tag-magenta">Programování</span>
+                            <span class="tag tag-yellow">Překlad</span>
+                            <span class="tag tag-cyan">Sumarizace</span>
+                            <span class="tag tag-magenta">Reasoning</span>
+                            <span class="tag tag-yellow">Plánování</span>
+                            <span class="tag tag-cyan">Psaní esejů</span>
+                            <span class="tag tag-magenta">Analogie</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 10: CROSS ENTROPY & GRADIENT ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 09</div>
+                    <h2 class="slide-title reveal">Trénování – <em style="color: var(--neural-magenta);">Jak se učí</em></h2>
+                    
+                    <div class="cols">
+                        <div>
+                            <h3 class="reveal" style="font-family: var(--font-mono); color: var(--neural-cyan); margin-bottom: 16px;">Cross-Entropy Loss</h3>
+                            <div class="terminal-window reveal">
+                                <div class="terminal-body">
+                                    <span style="color: var(--neural-yellow);">L = -Σ p(x) · log(q(x))</span>
+                                </div>
+                            </div>
+                            <p class="slide-text reveal" style="margin-top: 16px;">Model přiřadí pravděpodobnost každému tokenu ve slovníku. Trénink minimalizuje rozdíl mezi predikcí a skutečným dalším tokenem.</p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="reveal" style="font-family: var(--font-mono); color: var(--neural-magenta); margin-bottom: 16px;">Gradient Descent</h3>
+                            <div class="terminal-window reveal">
+                                <div class="terminal-body">
+                                    <span class="comment"># Animace gradientního sestupu</span><br>
+                                    <span class="prompt">learning_rate:</span> <span class="string">0.5</span><br>
+                                    <span class="prompt">f(x):</span> 0.12(x-3)² + 1<br>
+                                    <span class="prompt">minimum:</span> x = 3
+                                </div>
+                            </div>
+                            <p class="slide-text reveal" style="margin-top: 16px;"><strong>Learning rate</strong> ovlivňuje, jak velké kroky model dělá. Příliš velký → přeskakuje minimum. Příliš malý → učí se pomalu.</p>
+                        </div>
+                    </div>
+
+                    <div class="reveal" style="margin-top: 24px;">
+                        <div style="font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); margin-bottom: 8px;">Jak vypadá trénink v praxi:</div>
+                        <div class="flow">
+                            <div class="flow-step" style="font-size: 13px;">📖 Text</div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step" style="font-size: 13px;">🎯 Model predikuje</div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step" style="font-size: 13px;">❌ Chyba</div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step" style="font-size: 13px;">📐 Gradient</div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step" style="font-size: 13px;">🔄 Váhy se mění</div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step" style="font-size: 13px;">🔁 Opakovat 10^12×</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 11: SAMPLING ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 10</div>
+                    <h2 class="slide-title reveal">Generování textu – <em style="color: var(--neural-yellow);">Sampling</em></h2>
+                    <p class="slide-subtitle reveal">Jak model vybírá slovo z mnoha možných?</p>
+                    
+                    <div class="terminal-window reveal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot dot-red"></div>
+                            <div class="terminal-dot dot-yellow"></div>
+                            <div class="terminal-dot dot-green"></div>
+                            <span class="terminal-title">sampling_demo.py</span>
+                        </div>
+                        <div class="terminal-body">
+                            <span class="comment"># Top-K & Top-P sampling</span><br>
+                            <span class="prompt">temperature:</span> <span class="string">1.0</span> <span style="color: var(--text-dim);">(posuvník: 0.0 - 2.0)</span><br>
+                            <span class="prompt">top_k:</span> <span class="string">5</span> <span style="color: var(--text-dim);">(posuvník: 1 - 10)</span><br><br>
+                            <span style="color: var(--neural-cyan);">Původní:</span> textu 40%<br>
+                            <span style="color: var(--neural-magenta);">Po teplotě 0.5:</span> textu 52% (zesíleno)<br>
+                            <span style="color: var(--neural-yellow);">Po teplotě 1.5:</span> textu 28% (zeslabeno)
+                        </div>
+                    </div>
+
+                    <div class="cols reveal" style="margin-top: 24px;">
+                        <div class="card">
+                            <div class="card-title">🎯 Greedy Decoding</div>
+                            <div class="card-text">Vždy vybere nejpravděpodobnější token. Deterministické, ale generuje repetitivní a nudný text.</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🎲 Random Sampling</div>
+                            <div class="card-text">Vybere token náhodně podle distribuce. Kreativní, ale může generovat nesmysly.</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">⚖️ Top-K + Temperature</div>
+                            <div class="card-text">Kombinace: ořež na K nejlepších + uprav teplotu. Standardní přístup pro ChatGPT.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 12: TEMPERATURE & TOP-P ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 11</div>
+                    <h2 class="slide-title reveal">Teplota a <em style="color: var(--neural-cyan);">Top-P</em></h2>
+                    
+                    <div class="cols">
+                        <div class="card reveal">
+                            <div class="card-title">🌡️ Teplota (Temperature)</div>
+                            <div class="card-text" style="margin-bottom: 12px;">Mění "ostrost" distribuce pravděpodobností:</div>
+                            <div class="slider-row">
+                                <span class="slider-lbl">Temperature</span>
+                                <input type="range" id="tempSlider" min="0" max="200" value="100">
+                                <span class="slider-val" id="tempVal">1.0</span>
+                            </div>
+                            <div id="tempBars" style="margin-top: 12px;"></div>
+                            <div class="terminal-window" style="margin-top: 12px;">
+                                <div class="terminal-body">
+                                    <span class="string">p_i = exp(z_i / T) / Σ exp(z_j / T)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card reveal">
+                            <div class="card-title">🎯 Top-P (Nucleus Sampling)</div>
+                            <div class="card-text" style="margin-bottom: 12px;">Ořeže distribuci na nejmenší množinu tokenů s kumulativní pravd. ≥ P:</div>
+                            <div class="slider-row">
+                                <span class="slider-lbl">Top-P</span>
+                                <input type="range" id="toppSlider" min="10" max="100" value="90">
+                                <span class="slider-val" id="toppVal">0.9</span>
+                            </div>
+                            <div id="toppBars" style="margin-top: 12px;"></div>
+                            <blockquote style="margin-top: 12px;">💡 <strong>Praxe:</strong> OpenAI doporučuje měnit buď teplotu, nebo Top-P, ne obojí najednou.</blockquote>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 13: CONTEXT WINDOW ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 12</div>
+                    <h2 class="slide-title reveal">Kontextové okno – <em style="color: var(--neural-magenta);">Paměť modelu</em></h2>
+                    <p class="slide-subtitle reveal">Kolik tokenů model "vidí" při generování odpovědi?</p>
+                    
+                    <div class="terminal-window reveal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot dot-red"></div>
+                            <div class="terminal-dot dot-yellow"></div>
+                            <div class="terminal-dot dot-green"></div>
+                            <span class="terminal-title">context_window.py</span>
+                        </div>
+                        <div class="terminal-body">
+                            <span class="comment"># Posuvník kontextového okna</span><br>
+                            <span class="prompt">System:</span> Jsi asistent. | <span class="prompt">User:</span> Ahoj! | <span class="prompt">AI:</span> Ahoj!<br>
+                            <span class="prompt">User:</span> Kolik je 2+2? | <span class="prompt">AI:</span> 4 | ...<br><br>
+                            <span style="color: var(--neural-cyan);">■</span><span style="color: var(--neural-cyan);">■</span><span style="color: var(--neural-cyan);">■</span><span style="color: var(--neural-cyan);">■</span><span style="color: var(--neural-cyan);">■</span><span style="color: var(--neural-cyan);">■</span><span style="color: var(--neural-cyan);">■</span><span style="color: var(--neural-cyan);">■</span><span style="color: var(--neural-cyan);">■</span><span style="color: var(--neural-cyan);">■</span><span style="color: var(--text-dim);">■■■■■■■■■■</span> <span class="string">10/20</span>
+                        </div>
+                    </div>
+                    
+                    <blockquote class="reveal">
+                        Při dlouhých konverzacích model postupně "zapomíná" začátek. Řeší se to shrnutím nebo RAG.
+                    </blockquote>
+
+                    <div class="reveal" style="margin-top: 20px;">
+                        <div style="font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); margin-bottom: 8px;">Porovnání kontextových oken:</div>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <div class="card" style="flex: 1; min-width: 200px;">
+                                <div class="card-title" style="font-size: 14px;">GPT-3.5</div>
+                                <div class="stat-num" style="font-size: 28px;">4K</div>
+                                <div class="card-text">≈ 3 000 slov</div>
+                            </div>
+                            <div class="card" style="flex: 1; min-width: 200px;">
+                                <div class="card-title" style="font-size: 14px;">GPT-4</div>
+                                <div class="stat-num" style="font-size: 28px;">128K</div>
+                                <div class="card-text">≈ 96 000 slov ≈ kniha</div>
+                            </div>
+                            <div class="card" style="flex: 1; min-width: 200px;">
+                                <div class="card-title" style="font-size: 14px;">Claude 3</div>
+                                <div class="stat-num" style="font-size: 28px;">200K</div>
+                                <div class="card-text">≈ 150 000 slov</div>
+                            </div>
+                            <div class="card" style="flex: 1; min-width: 200px;">
+                                <div class="card-title" style="font-size: 14px;">Gemini 1.5</div>
+                                <div class="stat-num" style="font-size: 28px;">1M</div>
+                                <div class="card-text">≈ celá knihovna</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 14: ATTENTION ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 13</div>
+                    <h2 class="slide-title reveal">Mechanismus <em style="color: var(--neural-yellow);">Attention</em></h2>
+                    <p class="slide-subtitle reveal">Klíč k porozumění – model se dívá na relevantní slova</p>
+                    
+                    <div class="cols">
+                        <div class="reveal">
+                            <h3 style="font-family: var(--font-mono); color: var(--neural-yellow); margin-bottom: 12px;">Klikněte na slovo pro zvýraznění</h3>
+                            <div id="attentionHeatmap" class="heatmap-grid"></div>
+                            <div class="heatmap-info" id="attnInfo"></div>
+                        </div>
+                        
+                        <div class="reveal">
+                            <h3 style="font-family: var(--font-mono); color: var(--neural-cyan); margin-bottom: 12px;">Příklad – koreference</h3>
+                            <div class="terminal-window">
+                                <div class="terminal-body">
+                                    <span class="string">"Marie řekla Anně, že ona je unavená"</span><br><br>
+                                    <span style="color: var(--neural-magenta);">"ona"</span> → silná pozornost na <span style="color: var(--neural-yellow);">"Marie"</span><br>
+                                    <span style="color: var(--text-dim);">(Kdo je unavený? Marie, ne Anna.)</span>
+                                </div>
+                            </div>
+                            
+                            <blockquote style="margin-top: 16px;">
+                                Každá "hlava" attentionu sleduje jiný typ vztahu. Model jich má typicky 32–128.
+                            </blockquote>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 15: CHAT ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 14</div>
+                    <h2 class="slide-title reveal">Chat s AI – <em style="color: var(--neural-cyan);">Jak to funguje?</em></h2>
+                    <p class="slide-subtitle reveal">Každá zpráva je součástí jednoho dlouhého promptu</p>
+                    
+                    <div class="cols">
+                        <div class="reveal">
+                            <div class="chat-box" id="chatBox">
+                                <div class="chat-msg">
+                                    <div class="chat-role system">System</div>
+                                    <div class="chat-text">Jsi užitečný asistent. Odpovídej stručně.</div>
+                                </div>
+                            </div>
+                            <div class="chat-input-row">
+                                <input class="chat-input" id="chatInput" type="text" placeholder="Napište zprávu..." autocomplete="off">
+                                <button class="btn" onclick="chatSend()">→</button>
+                            </div>
+                        </div>
+                        
+                        <div class="reveal">
+                            <h3 style="font-family: var(--font-mono); color: var(--neural-yellow); margin-bottom: 12px;">API formát (živě)</h3>
+                            <div class="chat-api" id="chatApi">
+                                [<br>
+                                &nbsp;&nbsp;{<span class="api-k system">"role"</span>: <span class="api-s">"system"</span>, <span class="api-k system">"content"</span>: <span class="api-s">"Jsi užitečný asistent. Odpovídej stručně."</span>},<br>
+                                ]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 16: SYSTEM PROMPTS ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 15</div>
+                    <h2 class="slide-title reveal">Systémové zprávy – <em style="color: var(--neural-magenta);">System Prompts</em></h2>
+                    <p class="slide-subtitle reveal">Instrukce, které definují chování AI</p>
+                    
+                    <div class="cols">
+                        <div>
+                            <div class="terminal-window reveal">
+                                <div class="terminal-header">
+                                    <div class="terminal-dot dot-red"></div>
+                                    <div class="terminal-dot dot-yellow"></div>
+                                    <div class="terminal-dot dot-green"></div>
+                                    <span class="terminal-title">system_prompt_builder.py</span>
+                                </div>
+                                <div class="terminal-body">
+                                    <span class="prompt">SYSTEM:</span> <span class="string" id="spText">Vyber si roli...</span>
+                                </div>
+                            </div>
+                            
+                            <div class="sp-btns reveal" style="margin-top: 12px;">
+                                <button class="sp-btn" onclick="setSP('python')">🐍 Python expert</button>
+                                <button class="sp-btn" onclick="setSP('pirate')">🏴‍☠️ Pirát</button>
+                                <button class="sp-btn" onclick="setSP('poet')">📜 Básník</button>
+                                <button class="sp-btn" onclick="setSP('doctor')">🩺 Doktor</button>
+                            </div>
+
+                            <div class="terminal-window reveal" style="margin-top: 12px;">
+                                <div class="terminal-body">
+                                    <span style="color: var(--neural-magenta);">User:</span> Jak uvařit vejce?<br>
+                                    <span style="color: var(--neural-cyan);">AI:</span> <span id="spResponse">...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="reveal" style="font-family: var(--font-mono); color: var(--neural-cyan); margin-bottom: 16px;">Co system prompt ovlivňuje:</h3>
+                            <ul class="reveal">
+                                <li><strong>Osoba</strong> – kým model je</li>
+                                <li><strong>Formát</strong> – jak odpovídá</li>
+                                <li><strong>Omezení</strong> – čemu se vyhýbá</li>
+                                <li><strong>Jazyk</strong> a tón odpovědí</li>
+                                <li><strong>Doplnění znalostí</strong></li>
+                            </ul>
+                            
+                            <div class="card reveal" style="margin-top: 16px; border-color: var(--neural-magenta);">
+                                <div class="card-title" style="color: var(--neural-magenta);">⚠️ Důležité</div>
+                                <div class="card-text">System prompt není 100% bezpečný. Pokročilí uživatelé ho mohou obejít (prompt injection).</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 17: HALLUCINATIONS ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 16</div>
+                    <h2 class="slide-title reveal">😵‍💫 Halucinace – Když AI <em style="color: var(--neural-magenta);">vymýšlí</em></h2>
+                    <p class="slide-subtitle reveal">Model generuje text, který zní přesvědčivě, ale není pravdivý</p>
+                    
+                    <div class="cols">
+                        <div>
+                            <div class="card reveal" style="border-color: var(--neural-magenta);">
+                                <div class="card-title" style="color: var(--neural-magenta);">❌ Typická halucinace</div>
+                                <div class="card-text">"Albert Einstein získal Nobelovu cenu za <strong>teorii relativity</strong> v roce 1921."</div>
+                            </div>
+                            <p class="slide-text reveal" style="margin-top: 8px; color: var(--neural-cyan); font-size: 14px;">✓ Opravdu: Cenu dostal za fotoelektrický jev.</p>
+                            
+                            <div class="card reveal" style="margin-top: 16px; border-color: var(--neural-magenta);">
+                                <div class="card-title" style="color: var(--neural-magenta);">❌ Vymyšlená kniha</div>
+                                <div class="card-text">"Kniha '<span style="text-decoration: line-through;">Propasti minulosti</span>' od <span style="text-decoration: line-through;">Jana Nováka</span>."</div>
+                            </div>
+                            <p class="slide-text reveal" style="margin-top: 8px; color: var(--neural-cyan); font-size: 14px;">✓ Tato kniha ani autor neexistují.</p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="reveal" style="font-family: var(--font-mono); color: var(--neural-yellow); margin-bottom: 16px;">Proč k halucinacím dochází?</h3>
+                            <ul class="reveal">
+                                <li>Model optimalizuje na <strong>pravděpodobnost</strong>, ne na <strong>pravdu</strong></li>
+                                <li>Nemá přístup k realitě</li>
+                                <li>Trénovací data mohou obsahovat chyby</li>
+                                <li>Vysoká teplota zvyšuje riziko</li>
+                            </ul>
+                            
+                            <div class="card reveal" style="margin-top: 16px; border-color: var(--neural-yellow);">
+                                <div class="card-title" style="color: var(--neural-yellow);">🛡️ Obrana</div>
+                                <ul>
+                                    <li>RAG (Retrieval-Augmented Generation)</li>
+                                    <li>Ověřování faktů</li>
+                                    <li>Nízká teplota</li>
+                                    <li>Citace zdrojů</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 18: TOOL USE INTRO ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 17</div>
+                    <h2 class="slide-title reveal">Tool Use – AI <em style="color: var(--neural-cyan);">používá nástroje</em></h2>
+                    <p class="slide-subtitle reveal">LLM nemá přístup k internetu – dokud mu to nedovolíte</p>
+                    
+                    <div class="flow reveal">
+                        <div class="flow-step">💬 Dotaz uživatele</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">🧠 AI se rozhodne</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">🔧 Zavolá tool</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">📤 Výsledek toolu</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">💬 Odpověď uživateli</div>
+                    </div>
+                    
+                    <div class="terminal-window reveal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot dot-red"></div>
+                            <div class="terminal-dot dot-yellow"></div>
+                            <div class="terminal-dot dot-green"></div>
+                            <span class="terminal-title">tool_example.py</span>
+                        </div>
+                        <div class="terminal-body">
+                            <span class="comment"># Uživatel: "Jaké je počasí v Praze?"</span><br>
+                            <span class="prompt">tool_call:</span> get_weather(city=<span class="string">"Praha"</span>)<br>
+                            <span class="prompt">result:</span> {<span class="string">"temp"</span>: 18, <span class="string">"condition"</span>: <span class="string">"oblačno"</span>}<br>
+                            <span class="comment"># AI integruje výsledek:</span><br>
+                            <span class="string">"V Praze je aktuálně 18°C a oblačno."</span>
+                        </div>
+                    </div>
+
+                    <div class="cols reveal" style="margin-top: 24px;">
+                        <div class="card">
+                            <div class="card-title">🔑 Klíčový koncept</div>
+                            <div class="card-text">AI si sama <strong>vybírá</strong>, který tool zavolá a s jakými parametry. Není to pevně naprogramované – model se rozhoduje na základě kontextu.</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🔄 Agentic workflow</div>
+                            <div class="card-text">AI může zavolat <strong>více toolů za sebou</strong>: nejdřív vyhledá data, pak je zpracuje, pak zapíše výsledek. Řetězí kroky jako člověk.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 19: TOOL TYPES ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 18</div>
+                    <h2 class="slide-title reveal">Tool Use – <em style="color: var(--neural-yellow);">Typy nástrojů</em></h2>
+                    
+                    <div class="card-grid">
+                        <div class="card reveal">
+                            <div class="card-icon">🔍</div>
+                            <div class="card-title">Web Search</div>
+                            <div class="card-text">Vyhledávání aktuálních informací. Řeší halucinace.</div>
+                            <span class="tag tag-cyan">RAG</span>
+                        </div>
+                        <div class="card reveal">
+                            <div class="card-icon">💻</div>
+                            <div class="card-title">Code Interpreter</div>
+                            <div class="card-text">Spouští Python kód. Výpočty, analýzy dat.</div>
+                            <span class="tag tag-magenta">Sandbox</span>
+                        </div>
+                        <div class="card reveal">
+                            <div class="card-icon">📁</div>
+                            <div class="card-title">File Operations</div>
+                            <div class="card-text">Čtení a zápis souborů. Práce s dokumenty.</div>
+                            <span class="tag tag-yellow">I/O</span>
+                        </div>
+                        <div class="card reveal">
+                            <div class="card-icon">🗄️</div>
+                            <div class="card-title">Database Query</div>
+                            <div class="card-text">SQL dotazy, strukturovaná data.</div>
+                            <span class="tag tag-magenta">SQL</span>
+                        </div>
+                        <div class="card reveal">
+                            <div class="card-icon">🌐</div>
+                            <div class="card-title">API Calls</div>
+                            <div class="card-text">Volání externích služeb.</div>
+                            <span class="tag tag-cyan">REST</span>
+                        </div>
+                        <div class="card reveal">
+                            <div class="card-icon">🤖</div>
+                            <div class="card-title">Agenti</div>
+                            <div class="card-text">AI používá tools opakovaně, plánuje kroky.</div>
+                            <span class="tag tag-yellow">Loop</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 20: TOOL DEMO ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 19</div>
+                    <h2 class="slide-title reveal">Tool Use – <em style="color: var(--neural-cyan);">Interaktivní demo</em></h2>
+                    <p class="slide-subtitle reveal">Klikněte na dotaz a sledujte, jak AI vybírá a používá nástroje</p>
+                    
+                    <div class="reveal" style="display: flex; gap: 12px; margin-bottom: 24px;">
+                        <button class="btn" onclick="toolDemo('weather')">🌤️ Počasí</button>
+                        <button class="btn btn-magenta" onclick="toolDemo('calc')">🧮 Výpočet</button>
+                        <button class="btn" onclick="toolDemo('search')" style="background: var(--neural-yellow); color: var(--bg-deep);">🔍 Vyhledat</button>
+                    </div>
+                    
+                    <div class="terminal-window reveal" id="toolOutput">
+                        <div class="terminal-header">
+                            <div class="terminal-dot dot-red"></div>
+                            <div class="terminal-dot dot-yellow"></div>
+                            <div class="terminal-dot dot-green"></div>
+                            <span class="terminal-title">tool_workflow.py</span>
+                        </div>
+                        <div class="terminal-body" id="toolTerminal">
+                            <span style="color: var(--text-dim);"># Klikněte na tlačítko pro ukázku...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 21: RLHF ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 20</div>
+                    <h2 class="slide-title reveal">RLHF – Učení od <em style="color: var(--neural-magenta);">lidí</em></h2>
+                    <p class="slide-subtitle reveal">Reinforcement Learning from Human Feedback</p>
+                    
+                    <div class="flow reveal">
+                        <div class="flow-step">📝 Sběr dat od lidí</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">🏆 Trénování reward modelu</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">🎮 RL optimalizace (PPO)</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">✅ Bezpečnější model</div>
+                    </div>
+                    
+                    <div class="cols">
+                        <div class="card reveal">
+                            <div class="card-title">Fáze 1: Supervised Fine-Tuning</div>
+                            <div class="card-text">Lidé píší příklady ideálních odpovědí. Model se učí základní formát a styl odpovídání.</div>
+                        </div>
+                        <div class="card reveal">
+                            <div class="card-title">Fáze 2: Reward Model</div>
+                            <div class="card-text">Lidé hodnotí více odpovědí od nejhorší po nejlepší. Model se učí předpovídat, která odpověď se člověku líbí.</div>
+                        </div>
+                    </div>
+                    
+                    <blockquote class="reveal">
+                        <strong>Bezpečnostní trénink:</strong> RLHF je důvod, proč moderní LLM odmítají nebezpečné požadavky.
+                    </blockquote>
+
+                    <div class="cols reveal" style="margin-top: 24px;">
+                        <div class="card">
+                            <div class="card-title">📊 Kolik práce to stojí?</div>
+                            <div class="card-text">OpenAI najal tisíce annotátorů z Keni a Evropy. Každý hodnotitel stráví stovky hodin posuzováním odpovědí. Náklady: desítky milionů dolarů.</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🆕 DPO – nová cesta</div>
+                            <div class="card-text">Direct Preference Optimization – obechází reward model. Přímo optimalizuje z preferencí lidí. Jednodušší, levnější, stále efektivní.</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🛡️ Constitutional AI</div>
+                            <div class="card-text">Anthropic používá sadu principů ("ústavu"), podle kterých AI hodnotí vlastní odpovědi. Méně závislosti na lidech.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 22: LIMITATIONS ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 21</div>
+                    <h2 class="slide-title reveal">Omezení a <em style="color: var(--neural-yellow);">slepé skvrny</em></h2>
+                    
+                    <div class="card-grid">
+                        <div class="card reveal" style="border-color: var(--neural-magenta);">
+                            <div class="card-title" style="color: var(--neural-magenta);">🕐 Žádný časový koncept</div>
+                            <div class="card-text">Model neví, kolik je hodin. Netuší, co se stalo včera.</div>
+                        </div>
+                        <div class="card reveal" style="border-color: var(--neural-yellow);">
+                            <div class="card-title" style="color: var(--neural-yellow);">🧮 Špatná matematika</div>
+                            <div class="card-text">783 × 294 = ? Model odhaduje, nepočítá.</div>
+                        </div>
+                        <div class="card reveal">
+                            <div class="card-title">📋 Kontextové okno</div>
+                            <div class="card-text">Co se nevejde do kontextu, model "nevidí".</div>
+                        </div>
+                        <div class="card reveal">
+                            <div class="card-title">🎭 Bias</div>
+                            <div class="card-text">Model odráží předsudky v trénovacích datech.</div>
+                        </div>
+                        <div class="card reveal" style="border-color: var(--neural-magenta);">
+                            <div class="card-title" style="color: var(--neural-magenta);">🔒 Žádné skutečné pochopení</div>
+                            <div class="card-text">Model predikuje tokeny, nerozumí smyslu.</div>
+                        </div>
+                        <div class="card reveal" style="border-color: var(--neural-yellow);">
+                            <div class="card-title" style="color: var(--neural-yellow);">♻️ Stárnutí znalostí</div>
+                            <div class="card-text">Trénovací data mají cutoff datum.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 23: ETHICS ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 22</div>
+                    <h2 class="slide-title reveal">Etika a <em style="color: var(--neural-cyan);">zodpovědnost</em></h2>
+                    
+                    <div class="cols">
+                        <div>
+                            <h3 class="reveal" style="font-family: var(--font-mono); color: var(--neural-magenta); margin-bottom: 16px;">Klíčové otázky</h3>
+                            <ul class="reveal">
+                                <li><strong>Autorská práva:</strong> Kdo je vlastník výstupu?</li>
+                                <li><strong>Deepfakes:</strong> Generování podvodného obsahu</li>
+                                <li><strong>Desinformace:</strong> Masivní generování fake news</li>
+                                <li><strong>Pracovní trh:</strong> Které profese nahradí AI?</li>
+                                <li><strong>Soukromí:</strong> Osobní data z tréninku</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h3 class="reveal" style="font-family: var(--font-mono); color: var(--neural-yellow); margin-bottom: 16px;">Principy zodpovědné AI</h3>
+                            <div class="card reveal">
+                                <div class="card-title">Transparency</div>
+                                <div class="card-text">Vědět, kdy komunikujete s AI a jak byla natrénována.</div>
+                            </div>
+                            <div class="card reveal" style="margin-top: 12px;">
+                                <div class="card-title">Accountability</div>
+                                <div class="card-text">Někdo musí nést zodpovědnost za rozhodnutí AI.</div>
+                            </div>
+                            <div class="card reveal" style="margin-top: 12px;">
+                                <div class="card-title">Fairness</div>
+                                <div class="card-text">Minimalizace biasů, rovný přístup ke všem skupinám.</div>
+                            </div>
+
+                            <div class="card reveal" style="margin-top: 16px; border-color: var(--neural-cyan);">
+                                <div class="card-title" style="color: var(--neural-cyan);">📋 EU AI Act (2024)</div>
+                                <div class="card-text">První komplexní zákon o AI na světě. Rozděluje AI na 4 rizikové kategorie a stanoví povinnosti pro provozovatele.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 24: TIPS ==================== -->
+            <section class="slide">
+                <div class="grid-bg"></div>
+                <div class="slide-content">
+                    <div class="slide-label reveal">// 23</div>
+                    <h2 class="slide-title reveal">Praktické tipy pro <em style="color: var(--neural-magenta);">práci s LLM</em></h2>
+                    
+                    <div class="card-grid">
+                        <div class="card reveal">
+                            <div class="card-title">1. Prompt Engineering</div>
+                            <ul>
+                                <li>Buďte konkrétní</li>
+                                <li>Ukážte příklad (few-shot)</li>
+                                <li>Rozložte úkol na kroky</li>
+                                <li>Požádejte o formát</li>
+                            </ul>
+                        </div>
+                        <div class="card reveal">
+                            <div class="card-title">2. Ověřujte odpovědi</div>
+                            <ul>
+                                <li>Nezaměňujte jistotu za přesnost</li>
+                                <li>Ověřujte fakta a čísla</li>
+                                <li>Používejte nástroje pro data</li>
+                                <li>Queryujte model kriticky</li>
+                            </ul>
+                        </div>
+                        <div class="card reveal">
+                            <div class="card-title">3. Vybírejte správný model</div>
+                            <ul>
+                                <li>Malé modely pro jednoduché úkoly</li>
+                                <li>Větší pro komplexní reasoning</li>
+                                <li>Specializované pro domény</li>
+                                <li>Local vs. API – trade-off</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="terminal-window reveal" style="margin-top: 24px;">
+                        <div class="terminal-header">
+                            <div class="terminal-dot dot-red"></div>
+                            <div class="terminal-dot dot-yellow"></div>
+                            <div class="terminal-dot dot-green"></div>
+                            <span class="terminal-title">prompt_examples.py</span>
+                        </div>
+                        <div class="terminal-body">
+                            <span class="comment"># Špatný prompt:</span><br>
+                            <span class="string">"Napiš něco o AI"</span><br><br>
+                            <span class="comment"># Dobrý prompt:</span><br>
+                            <span class="string">"Napiš 3 odstavce pro středoškoláky o Transformer architektuře.<br>
+                            Použij analogii s pozorností člověka. Formát: Markdown, nadpisy H3."</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 25: SUMMARY ==================== -->
+            <section class="slide title-slide">
+                <div class="grid-bg"></div>
+                <div class="node" style="top: 15%; left: 10%;"></div>
+                <div class="node node-magenta" style="top: 25%; right: 15%;"></div>
+                <div class="node node-yellow" style="bottom: 20%; left: 20%;"></div>
+                <div class="node" style="bottom: 30%; right: 10%;"></div>
+                
+                <div class="slide-content">
+                    <h1 class="slide-title reveal" style="margin-bottom: 48px;">🚀 Shrnutí</h1>
+                    
+                    <div class="cols" style="text-align: left; max-width: 1400px;">
+                        <div class="reveal">
+                            <ul>
+                                <li>✅ LLM = Transformer + predikce dalšího tokenu</li>
+                                <li>✅ Tokenizace = převod textu na tokeny (BPE)</li>
+                                <li>✅ Embedding = sémantický prostor slov</li>
+                                <li>✅ Attention = zaměření na relevantní kontext</li>
+                                <li>✅ Sampling = teplota, Top-K, Top-P</li>
+                            </ul>
+                        </div>
+                        <div class="reveal">
+                            <ul>
+                                <li>✅ Kontextové okno = "paměť" modelu</li>
+                                <li>✅ Halucinace = model vymýšlí, když neví</li>
+                                <li>✅ Tool use = přístup k vnějším nástrojům</li>
+                                <li>✅ RLHF = učení z lidské zpětné vazby</li>
+                                <li>✅ Etika a zodpovědnost = klíčové téma</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-row reveal" style="margin-top: 48px;">
+                        <div class="stat">
+                            <div class="stat-num">Lekce 02</div>
+                            <div class="stat-label">Prompt Engineering →</div>
+                        </div>
+                    </div>
+                    
+                    <p class="slide-text reveal" style="margin-top: 32px; text-align: center; color: var(--neural-magenta);">
+                        Díky za pozornost! Máte otázky? 🙋
+                    </p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <!-- Page counter -->
+    <div class="page-counter">
+        <span id="currentPage">1</span> / <span id="totalSlides">25</span>
+    </div>
+
+    <!-- Edit mode toggle -->
+    <div class="edit-hotzone"></div>
+    <button class="edit-toggle" id="editToggle" title="Edit mode (E)">✏️</button>
+
+    <script>
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.currentSlide = 0;
+                this.stage = document.getElementById('deckStage');
+                this.setupStageScale();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupWheelNav();
+                this.showSlide(0);
+            }
+
+            setupStageScale() {
+                const scale = () => {
+                    const factor = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+                    const x = (window.innerWidth - 1920 * factor) / 2;
+                    const y = (window.innerHeight - 1080 * factor) / 2;
+                    this.stage.style.transform = `translate(${x}px, ${y}px) scale(${factor})`;
+                };
+                scale();
+                window.addEventListener('resize', scale);
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+                        e.preventDefault();
+                        this.nextSlide();
+                    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                        e.preventDefault();
+                        this.prevSlide();
+                    } else if (e.key === 'Home') {
+                        e.preventDefault();
+                        this.showSlide(0);
+                    } else if (e.key === 'End') {
+                        e.preventDefault();
+                        this.showSlide(this.slides.length - 1);
+                    }
+                });
+            }
+
+            setupTouchNav() {
+                let startX = 0;
+                let startY = 0;
+                
+                document.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                });
+                
+                document.addEventListener('touchend', (e) => {
+                    const endX = e.changedTouches[0].clientX;
+                    const endY = e.changedTouches[0].clientY;
+                    const diffX = startX - endX;
+                    const diffY = startY - endY;
+                    
+                    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+                        if (diffX > 0) {
+                            this.nextSlide();
+                        } else {
+                            this.prevSlide();
+                        }
+                    }
+                });
+            }
+
+            setupWheelNav() {
+                let wheelTimeout = null;
+                document.addEventListener('wheel', (e) => {
+                    if (wheelTimeout) return;
+                    wheelTimeout = setTimeout(() => { wheelTimeout = null; }, 500);
+                    
+                    if (e.deltaY > 0) {
+                        this.nextSlide();
+                    } else if (e.deltaY < 0) {
+                        this.prevSlide();
+                    }
+                });
+            }
+
+            showSlide(index) {
+                this.currentSlide = Math.max(0, Math.min(index, this.slides.length - 1));
+                this.slides.forEach((slide, i) => {
+                    slide.classList.toggle('active', i === this.currentSlide);
+                    slide.classList.toggle('visible', i === this.currentSlide);
+                });
+                
+                // Update progress bar
+                const progress = ((this.currentSlide + 1) / this.slides.length) * 100;
+                document.getElementById('progressBar').style.width = `${progress}%`;
+                
+                // Update page counter
+                document.getElementById('currentPage').textContent = this.currentSlide + 1;
+            }
+
+            nextSlide() {
+                this.showSlide(this.currentSlide + 1);
+            }
+
+            prevSlide() {
+                this.showSlide(this.currentSlide - 1);
+            }
+        }
+
+        // Initialize presentation
+        const presentation = new SlidePresentation();
+
+        /* ===========================================
+           TOOL DEMO FUNCTION
+           =========================================== */
+        function toolDemo(type) {
+            const terminal = document.getElementById('toolTerminal');
+            const demos = {
+                weather: `<span style="color: var(--neural-magenta);">User:</span> "Jaké je počasí v Praze?"<br>
+                    <span style="color: var(--neural-cyan);">AI:</span> "Potřebuji zjistit aktuální počasí..."<br>
+                    <span style="color: var(--neural-yellow);">tool_call:</span> get_weather(city="Praha")<br>
+                    <span style="color: var(--neural-yellow);">result:</span> {"temp": 18, "condition": "oblačno", "humidity": 72}<br>
+                    <span style="color: var(--neural-cyan);">AI:</span> "V Praze je aktuálně 18°C, oblačno s vlhkostí 72%."`,
+                calc: `<span style="color: var(--neural-magenta);">User:</span> "Kolik je 1234 × 5678?"<br>
+                    <span style="color: var(--neural-cyan);">AI:</span> "Potřebuji přesně vypočítat..."<br>
+                    <span style="color: var(--neural-yellow);">tool_call:</span> calculator(expr="1234 * 5678")<br>
+                    <span style="color: var(--neural-yellow);">result:</span> {"result": 7006652}<br>
+                    <span style="color: var(--neural-cyan);">AI:</span> "Výsledek: 1234 × 5678 = 7 006 652"`,
+                search: `<span style="color: var(--neural-magenta);">User:</span> "Kdo vyhrál Nobelovu cenu za fyziku 2024?"<br>
+                    <span style="color: var(--neural-cyan);">AI:</span> "Potřebuji vyhledat aktuální informace..."<br>
+                    <span style="color: var(--neural-yellow);">tool_call:</span> web_search(query="Nobel prize physics 2024")<br>
+                    <span style="color: var(--neural-yellow);">result:</span> {"results": ["John Hopfield, Geoffrey Hinton"]}<br>
+                    <span style="color: var(--neural-cyan);">AI:</span> "Nobelovu cenu za fyziku 2024 získali John Hopfield a Geoffrey Hinton."`
+            };
+            
+            terminal.innerHTML = demos[type];
+        }
+
+        /* ===========================================
+           EDIT MODE (INLINE EDITING)
+           =========================================== */
+        class InlineEditor {
+            constructor() {
+                this.isActive = false;
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                const hotzone = document.querySelector('.edit-hotzone');
+                const toggle = document.getElementById('editToggle');
+                let hideTimeout = null;
+
+                hotzone.addEventListener('mouseenter', () => {
+                    clearTimeout(hideTimeout);
+                    toggle.classList.add('show');
+                });
+                hotzone.addEventListener('mouseleave', () => {
+                    hideTimeout = setTimeout(() => {
+                        if (!this.isActive) toggle.classList.remove('show');
+                    }, 400);
+                });
+                toggle.addEventListener('mouseenter', () => {
+                    clearTimeout(hideTimeout);
+                });
+                toggle.addEventListener('mouseleave', () => {
+                    hideTimeout = setTimeout(() => {
+                        if (!this.isActive) toggle.classList.remove('show');
+                    }, 400);
+                });
+                hotzone.addEventListener('click', () => {
+                    this.toggleEditMode();
+                });
+                toggle.addEventListener('click', () => {
+                    this.toggleEditMode();
+                });
+                document.addEventListener('keydown', (e) => {
+                    if ((e.key === 'e' || e.key === 'E') && !e.target.getAttribute('contenteditable')) {
+                        this.toggleEditMode();
+                    }
+                });
+            }
+
+            toggleEditMode() {
+                this.isActive = !this.isActive;
+                const toggle = document.getElementById('editToggle');
+                toggle.classList.toggle('active', this.isActive);
+                
+                const editableElements = document.querySelectorAll('.slide-title, .slide-subtitle, .slide-text, .card-title, .card-text');
+                editableElements.forEach(el => {
+                    el.contentEditable = this.isActive;
+                });
+            }
+        }
+
+        const editor = new InlineEditor();
+
+        /* ===========================================
+           INTERACTIVE: TOKENIZER (Slide 5)
+           =========================================== */
+        (function() {
+            const input = document.getElementById('tokenInput');
+            const display = document.getElementById('tokenDisplay');
+            const countEl = document.getElementById('tokenCount');
+
+            function simpleTokenize(text) {
+                if (!text) return [];
+                const tokens = [];
+                const re = /([A-Za-zÀ-ž]+|[0-9]+|\s+|[^\sA-Za-zÀ-ž0-9]+)/g;
+                let m;
+                while ((m = re.exec(text)) !== null) {
+                    tokens.push(m[1]);
+                }
+                return tokens;
+            }
+
+            function render() {
+                const text = input.value;
+                const tokens = simpleTokenize(text);
+                display.innerHTML = tokens.map((t, i) => {
+                    const cls = t.trim() === '' ? '' : `tc-${i % 6}`;
+                    const label = t.trim() === '' ? '&nbsp;' : t.replace(/</g,'&lt;');
+                    return `<span class="token-chip ${cls}">${label}</span>`;
+                }).join('');
+                const nonSpace = tokens.filter(t => t.trim() !== '');
+                countEl.textContent = `${nonSpace.length} tokenů · ${text.length} znaků · ~${Math.ceil(text.length / 4)} tokenerů (odhad)`;
+            }
+
+            input.addEventListener('input', render);
+            render();
+        })();
+
+        /* ===========================================
+           INTERACTIVE: EMBEDDING PLOT (Slide 7)
+           =========================================== */
+        (function() {
+            const canvas = document.getElementById('embeddingCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const tooltip = document.getElementById('embTooltip');
+            const wrap = canvas.parentElement;
+
+            const words = [
+                { w: 'pes', x: 0.25, y: 0.35, g: 0 },
+                { w: 'kočka', x: 0.30, y: 0.28, g: 0 },
+                { w: 'kůň', x: 0.20, y: 0.40, g: 0 },
+                { w: 'pes', x: 0.27, y: 0.32, g: 0 },
+                { w: 'ryba', x: 0.22, y: 0.45, g: 0 },
+                { w: 'červená', x: 0.70, y: 0.30, g: 1 },
+                { w: 'modrá', x: 0.75, y: 0.25, g: 1 },
+                { w: 'zelená', x: 0.68, y: 0.35, g: 1 },
+                { w: 'žlutá', x: 0.73, y: 0.32, g: 1 },
+                { w: 'bílá', x: 0.72, y: 0.28, g: 1 },
+                { w: 'rychlý', x: 0.50, y: 0.70, g: 2 },
+                { w: 'pomalý', x: 0.55, y: 0.75, g: 2 },
+                { w: 'rychle', x: 0.48, y: 0.68, g: 2 },
+                { w: 'pomalu', x: 0.53, y: 0.73, g: 2 },
+                { w: 'chléb', x: 0.35, y: 0.60, g: 3 },
+                { w: 'sýr', x: 0.40, y: 0.55, g: 3 },
+                { w: 'mléko', x: 0.38, y: 0.63, g: 3 },
+                { w: 'jablko', x: 0.42, y: 0.58, g: 3 },
+            ];
+
+            const colors = ['#00f5d4', '#f72585', '#fee440', '#7c3aed'];
+            let hoveredIdx = -1;
+
+            function resize() {
+                const r = window.devicePixelRatio || 1;
+                const rect = wrap.getBoundingClientRect();
+                canvas.width = rect.width * r;
+                canvas.height = rect.height * r;
+                ctx.setTransform(r, 0, 0, r, 0, 0);
+                draw();
+            }
+
+            function draw() {
+                const w = wrap.clientWidth;
+                const h = wrap.clientHeight;
+                ctx.clearRect(0, 0, w, h);
+
+                // grid
+                ctx.strokeStyle = 'rgba(0,245,212,0.06)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < w; i += 40) {
+                    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke();
+                }
+                for (let i = 0; i < h; i += 40) {
+                    ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(w, i); ctx.stroke();
+                }
+
+                // points
+                words.forEach((p, i) => {
+                    const px = p.x * w;
+                    const py = p.y * h;
+                    const r = i === hoveredIdx ? 8 : 5;
+                    const col = colors[p.g];
+
+                    ctx.beginPath();
+                    ctx.arc(px, py, r + 4, 0, Math.PI * 2);
+                    ctx.fillStyle = col.replace(')', ',0.15)').replace('rgb', 'rgba');
+                    ctx.fill();
+
+                    ctx.beginPath();
+                    ctx.arc(px, py, r, 0, Math.PI * 2);
+                    ctx.fillStyle = col;
+                    ctx.fill();
+
+                    ctx.font = `${i === hoveredIdx ? 'bold ' : ''}13px "Space Mono", monospace`;
+                    ctx.fillStyle = i === hoveredIdx ? '#ffffff' : 'rgba(255,255,255,0.6)';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(p.w, px, py - r - 6);
+                });
+            }
+
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = wrap.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const my = e.clientY - rect.top;
+                const w = wrap.clientWidth;
+                const h = wrap.clientHeight;
+
+                hoveredIdx = -1;
+                words.forEach((p, i) => {
+                    const dx = mx - p.x * w;
+                    const dy = my - p.y * h;
+                    if (Math.sqrt(dx * dx + dy * dy) < 18) hoveredIdx = i;
+                });
+
+                if (hoveredIdx >= 0) {
+                    const p = words[hoveredIdx];
+                    tooltip.style.opacity = '1';
+                    tooltip.style.left = (p.x * w + 14) + 'px';
+                    tooltip.style.top = (p.y * h - 30) + 'px';
+                    const gNames = ['Zvířata', 'Barvy', 'Rychlost', 'Jídlo'];
+                    tooltip.textContent = `"${p.w}" → skupina: ${gNames[p.g]}`;
+                    canvas.style.cursor = 'pointer';
+                } else {
+                    tooltip.style.opacity = '0';
+                    canvas.style.cursor = 'crosshair';
+                }
+                draw();
+            });
+
+            canvas.addEventListener('mouseleave', () => {
+                hoveredIdx = -1;
+                tooltip.style.opacity = '0';
+                draw();
+            });
+
+            window.addEventListener('resize', resize);
+            resize();
+        })();
+
+        /* ===========================================
+           INTERACTIVE: TEMPERATURE & TOP-P (Slide 12)
+           =========================================== */
+        (function() {
+            const tempSlider = document.getElementById('tempSlider');
+            const tempVal = document.getElementById('tempVal');
+            const tempBars = document.getElementById('tempBars');
+            const toppSlider = document.getElementById('toppSlider');
+            const toppVal = document.getElementById('toppVal');
+            const toppBars = document.getElementById('toppBars');
+            if (!tempSlider) return;
+
+            const baseLogits = [2.0, 1.2, 0.8, 0.5, 0.3, -0.2, -0.5];
+            const labels = ['textu', 'kód', 'otázka', 'věta', 'slovo', 'číslo', 'jiné'];
+            const barColors = ['#00f5d4', '#f72585', '#fee440', '#00f5d4', '#f72585', '#fee440', '#7c3aed'];
+
+            function softmax(logits, temp) {
+                const t = Math.max(temp, 0.01);
+                const scaled = logits.map(l => l / t);
+                const max = Math.max(...scaled);
+                const exps = scaled.map(l => Math.exp(l - max));
+                const sum = exps.reduce((a, b) => a + b, 0);
+                return exps.map(e => e / sum);
+            }
+
+            function renderBars(container, probs, cutoff) {
+                container.innerHTML = probs.map((p, i) => {
+                    const included = cutoff === null || p.included;
+                    const opacity = included ? '1' : '0.25';
+                    return `<div class="prob-row" style="opacity:${opacity}">
+                        <span class="prob-label">${labels[i]}</span>
+                        <div class="prob-track">
+                            <div class="prob-fill" style="width:${p.prob * 100}%;background:${barColors[i]}"></div>
+                        </div>
+                        <span class="prob-pct">${(p.prob * 100).toFixed(1)}%</span>
+                    </div>`;
+                }).join('');
+            }
+
+            function updateTemp() {
+                const T = parseInt(tempSlider.value) / 100;
+                tempVal.textContent = T.toFixed(1);
+                const probs = softmax(baseLogits, T);
+                renderBars(tempBars, probs.map((p, i) => ({ prob: p, included: true })), null);
+            }
+
+            function updateTopP() {
+                const P = parseInt(toppSlider.value) / 100;
+                toppVal.textContent = P.toFixed(1);
+                const probs = softmax(baseLogits, 1.0);
+                const indexed = probs.map((p, i) => ({ prob: p, i }));
+                indexed.sort((a, b) => b.prob - a.prob);
+                let cumul = 0;
+                const included = new Set();
+                for (const item of indexed) {
+                    cumul += item.prob;
+                    included.add(item.i);
+                    if (cumul >= P) break;
+                }
+                renderBars(toppBars, probs.map((p, i) => ({ prob: p, included: included.has(i) })), P);
+            }
+
+            tempSlider.addEventListener('input', updateTemp);
+            toppSlider.addEventListener('input', updateTopP);
+            updateTemp();
+            updateTopP();
+        })();
+
+        /* ===========================================
+           INTERACTIVE: ATTENTION HEATMAP (Slide 14)
+           =========================================== */
+        (function() {
+            const container = document.getElementById('attentionHeatmap');
+            const info = document.getElementById('attnInfo');
+            if (!container) return;
+
+            const words = ['The', 'cat', 'sat', 'on', 'the', 'mat'];
+            const n = words.length;
+            // Simulated attention weights (each row = query, each col = key)
+            const weights = [
+                [0.35, 0.15, 0.05, 0.05, 0.30, 0.10],
+                [0.25, 0.30, 0.10, 0.05, 0.20, 0.10],
+                [0.10, 0.40, 0.25, 0.05, 0.10, 0.10],
+                [0.05, 0.05, 0.10, 0.35, 0.10, 0.35],
+                [0.30, 0.15, 0.05, 0.10, 0.25, 0.15],
+                [0.10, 0.15, 0.15, 0.30, 0.15, 0.15],
+            ];
+
+            function heatColor(v) {
+                // 0 → dark, 1 → bright cyan
+                const r = Math.round(v * 0);
+                const g = Math.round(40 + v * 205);
+                const b = Math.round(30 + v * 182);
+                return `rgb(${r},${g},${b})`;
+            }
+
+            function build() {
+                let html = '<div class="heatmap-header">';
+                words.forEach(w => { html += `<span>${w}</span>`; });
+                html += '</div>';
+
+                weights.forEach((row, ri) => {
+                    html += `<div class="heatmap-row">`;
+                    html += `<span class="heatmap-word" data-r="${ri}">${words[ri]}</span>`;
+                    row.forEach((v, ci) => {
+                        html += `<div class="heatmap-cell" data-r="${ri}" data-c="${ci}" 
+                            style="background:${heatColor(v)}" 
+                            title="${words[ri]} → ${words[ci]}: ${(v*100).toFixed(0)}%"></div>`;
+                    });
+                    html += `</div>`;
+                });
+                container.innerHTML = html;
+
+                // Click on word to highlight row
+                container.querySelectorAll('.heatmap-word').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const r = parseInt(el.dataset.r);
+                        container.querySelectorAll('.heatmap-word').forEach(w => w.classList.remove('hl'));
+                        el.classList.add('hl');
+                        const maxCi = weights[r].indexOf(Math.max(...weights[r]));
+                        info.innerHTML = `<span style="color:var(--neural-cyan)">"${words[r]}"</span> nejsilněji pozornost na <span style="color:var(--neural-yellow)">"${words[maxCi]}"</span> (${(weights[r][maxCi]*100).toFixed(0)}%)`;
+                    });
+                });
+
+                // Hover on cell
+                container.querySelectorAll('.heatmap-cell').forEach(el => {
+                    el.addEventListener('mouseenter', () => {
+                        const r = parseInt(el.dataset.r);
+                        const c = parseInt(el.dataset.c);
+                        info.innerHTML = `<span style="color:var(--neural-cyan)">"${words[r]}"</span> → <span style="color:var(--neural-yellow)">"${words[c]}"</span>: ${(weights[r][c]*100).toFixed(0)}% attention`;
+                    });
+                });
+            }
+
+            build();
+        })();
+
+        /* ===========================================
+           INTERACTIVE: CHAT SIMULATOR (Slide 15)
+           =========================================== */
+        const chatHistory = [
+            { role: 'system', text: 'Jsi užitečný asistent. Odpovídej stručně.' }
+        ];
+
+        const chatResponses = {
+            'ahoj': 'Ahoj! Jak ti mohu pomoci?',
+            'kdo jsi': 'Jsem AI asistent založený na velkém jazykovém modelu.',
+            '2+2': '4',
+            'kolik je 2+2': '4',
+            'jak se máš': 'Díky, jsem AI – nemám pocity, ale jsem připraven pomoci!',
+            'default': 'To je zajímavý dotaz! Mohu pomoci s čímkoli dalším.'
+        };
+
+        function chatSend() {
+            const input = document.getElementById('chatInput');
+            const box = document.getElementById('chatBox');
+            const apiEl = document.getElementById('chatApi');
+            const text = input.value.trim();
+            if (!text) return;
+
+            chatHistory.push({ role: 'user', text });
+            addChatMsg('user', text);
+            input.value = '';
+
+            setTimeout(() => {
+                const key = text.toLowerCase().replace(/[?!.,]/g, '');
+                const response = chatResponses[key] || chatResponses['default'];
+                chatHistory.push({ role: 'assistant', text: response });
+                addChatMsg('assistant', response);
+                updateApiPreview(apiEl);
+            }, 400);
+
+            updateApiPreview(apiEl);
+        }
+
+        function addChatMsg(role, text) {
+            const box = document.getElementById('chatBox');
+            const div = document.createElement('div');
+            div.className = 'chat-msg';
+            div.innerHTML = `<div class="chat-role ${role}">${role}</div><div class="chat-text">${text}</div>`;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function updateApiPreview(el) {
+            el.innerHTML = '[' + chatHistory.map(m => {
+                const cls = m.role;
+                return `<br>&nbsp;&nbsp;{<span class="api-k ${cls}">"role"</span>: <span class="api-s">"${m.role}"</span>, <span class="api-k ${cls}">"content"</span>: <span class="api-s">"${m.text.substring(0, 40)}${m.text.length > 40 ? '...' : ''}"</span>}`;
+            }).join(',') + '<br>]';
+        }
+
+        document.getElementById('chatInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') chatSend();
+        });
+
+        /* ===========================================
+           INTERACTIVE: SYSTEM PROMPT BUILDER (Slide 16)
+           =========================================== */
+        const spPresets = {
+            python: {
+                prompt: 'Jsi Python expert. Odpovídej jen v Python kódu s komentáři.',
+                response: 'def uvarit_vejce():\n    # Nejdřív přiveď vodu k varu\n    voda = naplnit_kastrol()\n    zahat(voda)\n    # Pak opatrně vlož vejce\n    vlozit_vejce(voda, cas=8*60)  # 8 minut'
+            },
+            pirate: {
+                prompt: 'Mluv jako pirát. Odpovídej v pirátském stylu.',
+                response: 'Arr! Vaření vejce, co? Toť jednoduchá úloha! Naber vodu do kastrolu, přiveď ji k varu, a pak to vejce tam hoď na 8 minut! A ať tě More Smaží, pokud to spálíš!'
+            },
+            poet: {
+                prompt: 'Odpovídej veršovanou formou, jako básník.',
+                response: 'Vodu do kastrolu nalij,\nna oheň pomalu ji dej.\nKdyž bublá, vejce tam,\nosm minut – a je hotovo, znám!'
+            },
+            doctor: {
+                prompt: 'Jsi lékař. Odpovídej odborným, ale srozumitelným jazykem.',
+                response: 'Doporučuji tepelně upravené vejce jako součást vyvážené stravy. Vaření po dobu 6-8 minut zajistí bezpečnou denaturaci proteinů při zachování nutriční hodnoty.'
+            }
+        };
+
+        function setSP(key) {
+            const preset = spPresets[key];
+            if (!preset) return;
+            document.getElementById('spText').textContent = preset.prompt;
+            document.getElementById('spResponse').textContent = preset.response;
+            document.querySelectorAll('.sp-btn').forEach(b => b.classList.remove('on'));
+            event.currentTarget.classList.add('on');
+        }
+    </script>
+</body>
+</html>
