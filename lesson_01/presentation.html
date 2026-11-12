@@ -599,6 +599,43 @@
         .yesno h4 { margin-bottom: 20px; }
         .yesno .chip { background: var(--paper); font-size: 26px; padding: 10px 16px; }
 
+
+        /* Model families: big / mid / small (part 5) */
+        .fam { display: grid; grid-template-columns: 200px repeat(3, minmax(0, 1fr)); column-gap: 14px; row-gap: 14px; align-items: center; }
+        .fam .h { font: 600 20px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); padding-left: 6px; }
+        .fam .chip { font-size: 24px; text-align: center; padding: 10px 0; }
+        .fam b { font-size: 31px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; background: #fbf8f0; border: 3px solid var(--ink); border-radius: 14px; padding: 14px 18px; white-space: nowrap; }
+        .fam i { font: 600 21px/1.3 var(--font-mono); font-style: normal; border-radius: 10px; padding: 8px 12px; text-align: center; }
+
+        /* Reasoning: scratch notes and effort bars (part 5) */
+        .think pre { font: 400 34px/1.4 var(--font-mono); color: var(--tok-1); margin-top: 10px; }
+        .effort { padding: 30px 36px 32px; }
+        .effort .row { grid-template-columns: 130px 1fr 60px 110px; font-size: 28px; }
+        .effort .row .p { font-size: 26px; color: var(--paper); }
+
+        /* Prompt anatomy: each ingredient in its own colour (part 6) */
+        .anat { padding: 30px 38px 36px; }
+        .anat p { margin-top: 18px; font-size: 36px; line-height: 1.62; font-weight: 700; }
+        .anat .hl { font-weight: 700; }
+
+        /* Few-shot examples (part 6) */
+        .shots { padding: 28px 36px 34px; }
+        .shots .cmd { margin-top: 12px; font-size: 34px; font-weight: 800; }
+        .shot { display: grid; grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr); column-gap: 14px; align-items: center; margin-top: 20px; font: 400 25px/1.35 var(--font-mono); }
+        .shot .arr { text-align: center; color: var(--panel-dim); }
+        .shot .out { color: var(--tok-2); }
+
+        /* Vertical flow with down arrows (part 6) */
+        .flow.vert { grid-auto-flow: row; grid-auto-rows: auto; gap: 34px; }
+        .flow.vert > div { min-height: 0; font-size: 28px; padding: 14px 22px; }
+        .flow.vert > div:not(:last-child)::after { content: '↓'; right: auto; left: 50%; top: auto; bottom: -34px; translate: -50% 0; }
+
+        /* Tip lists inside the yes/no cards (part 6) */
+        .tips { list-style: none; display: grid; row-gap: 18px; }
+        .tips li { display: grid; row-gap: 4px; }
+        .tips b { font-size: 31px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.15; }
+        .tips span { font: 400 21px/1.35 var(--font-mono); color: var(--ink-soft); }
+
         /* ===========================================
            CLICK STEPS
            .step elements stay hidden until the presenter
@@ -682,7 +719,7 @@
 
                 <div class="foot">
                     <span><b>Lukáš Fajt</b></span>
-                    <span>01 / 46</span>
+                    <span>01 / 60</span>
                 </div>
             </section>
 
@@ -718,7 +755,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>02 / 46</span>
+                    <span>02 / 60</span>
                 </div>
             </section>
 
@@ -750,7 +787,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>03 / 46</span>
+                    <span>03 / 60</span>
                 </div>
             </section>
 
@@ -795,7 +832,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>04 / 46</span>
+                    <span>04 / 60</span>
                 </div>
             </section>
 
@@ -900,7 +937,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>05 / 46</span>
+                    <span>05 / 60</span>
                 </div>
             </section>
 
@@ -933,7 +970,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>06 / 46</span>
+                    <span>06 / 60</span>
                 </div>
             </section>
 
@@ -975,7 +1012,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>07 / 46</span>
+                    <span>07 / 60</span>
                 </div>
             </section>
 
@@ -1017,7 +1054,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>08 / 46</span>
+                    <span>08 / 60</span>
                 </div>
             </section>
 
@@ -1064,7 +1101,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>09 / 46</span>
+                    <span>09 / 60</span>
                 </div>
             </section>
 
@@ -1106,7 +1143,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>10 / 46</span>
+                    <span>10 / 60</span>
                 </div>
             </section>
 
@@ -1160,7 +1197,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>11 / 46</span>
+                    <span>11 / 60</span>
                 </div>
             </section>
 
@@ -1195,7 +1232,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>12 / 46</span>
+                    <span>12 / 60</span>
                 </div>
             </section>
 
@@ -1237,7 +1274,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>13 / 46</span>
+                    <span>13 / 60</span>
                 </div>
             </section>
 
@@ -1272,7 +1309,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>14 / 46</span>
+                    <span>14 / 60</span>
                 </div>
             </section>
 
@@ -1316,7 +1353,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>15 / 46</span>
+                    <span>15 / 60</span>
                 </div>
             </section>
 
@@ -1350,7 +1387,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>16 / 46</span>
+                    <span>16 / 60</span>
                 </div>
             </section>
 
@@ -1384,7 +1421,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>17 / 46</span>
+                    <span>17 / 60</span>
                 </div>
             </section>
 
@@ -1428,7 +1465,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>18 / 46</span>
+                    <span>18 / 60</span>
                 </div>
             </section>
 
@@ -1463,7 +1500,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>19 / 46</span>
+                    <span>19 / 60</span>
                 </div>
             </section>
 
@@ -1498,7 +1535,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>20 / 46</span>
+                    <span>20 / 60</span>
                 </div>
             </section>
 
@@ -1537,7 +1574,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>21 / 46</span>
+                    <span>21 / 60</span>
                 </div>
             </section>
 
@@ -1572,7 +1609,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>22 / 46</span>
+                    <span>22 / 60</span>
                 </div>
             </section>
 
@@ -1614,7 +1651,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>23 / 46</span>
+                    <span>23 / 60</span>
                 </div>
             </section>
 
@@ -1648,7 +1685,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>24 / 46</span>
+                    <span>24 / 60</span>
                 </div>
             </section>
 
@@ -1684,7 +1721,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>25 / 46</span>
+                    <span>25 / 60</span>
                 </div>
             </section>
 
@@ -1719,7 +1756,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>26 / 46</span>
+                    <span>26 / 60</span>
                 </div>
             </section>
 
@@ -1759,7 +1796,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>27 / 46</span>
+                    <span>27 / 60</span>
                 </div>
             </section>
 
@@ -1797,7 +1834,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>28 / 46</span>
+                    <span>28 / 60</span>
                 </div>
             </section>
 
@@ -1831,7 +1868,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>29 / 46</span>
+                    <span>29 / 60</span>
                 </div>
             </section>
 
@@ -1869,7 +1906,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>30 / 46</span>
+                    <span>30 / 60</span>
                 </div>
             </section>
 
@@ -1918,7 +1955,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>31 / 46</span>
+                    <span>31 / 60</span>
                 </div>
             </section>
 
@@ -1968,7 +2005,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>32 / 46</span>
+                    <span>32 / 60</span>
                 </div>
             </section>
 
@@ -2006,7 +2043,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>33 / 46</span>
+                    <span>33 / 60</span>
                 </div>
             </section>
 
@@ -2046,7 +2083,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>34 / 46</span>
+                    <span>34 / 60</span>
                 </div>
             </section>
 
@@ -2082,7 +2119,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>35 / 46</span>
+                    <span>35 / 60</span>
                 </div>
             </section>
 
@@ -2127,7 +2164,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>36 / 46</span>
+                    <span>36 / 60</span>
                 </div>
             </section>
 
@@ -2172,12 +2209,12 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>37 / 46</span>
+                    <span>37 / 60</span>
                 </div>
             </section>
 
             <!-- ===========================================
-                 SLIDE 38: ŠPIČKA V ŘÍJNU 2026
+                 SLIDE 38: ŠPIČKA V LISTOPADU 2026
                  =========================================== -->
             <section class="slide">
                 <div class="prompt">
@@ -2186,12 +2223,12 @@
                 </div>
 
                 <div class="body">
-                    <h2 class="tokens sm" aria-label="Špička v říjnu 2026">
+                    <h2 class="tokens sm" aria-label="Špička v listopadu 2026">
                         <span class="tok pop" style="--i:1"><span class="txt c3">Špič</span></span>
                         <span class="tok pop" style="--i:2"><span class="txt c4">ka</span></span>
                         <span class="tok pop" style="--i:3"><span class="txt c5"> v</span></span>
-                        <span class="tok pop" style="--i:4"><span class="txt c1"> říj</span></span>
-                        <span class="tok pop" style="--i:5"><span class="txt c2">nu</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c1"> listo</span></span>
+                        <span class="tok pop" style="--i:5"><span class="txt c2">padu</span></span>
                         <span class="tok pop" style="--i:6"><span class="txt c3"> 2026</span></span>
                         <span class="caret" style="--i:7"></span>
                     </h2>
@@ -2204,7 +2241,7 @@
                                     <div class="lab"><span class="chip c2">OpenAI</span><b>GPT-6 Astra<small>ChatGPT</small></b></div>
                                     <div class="lab"><span class="chip c1">Anthropic</span><b>Claude Opus 5.5<small>Claude</small></b></div>
                                     <div class="lab"><span class="chip c4">Google</span><b>Gemini 4 Argon<small>Gemini</small></b></div>
-                                    <div class="lab"><span class="chip c5">Meta</span><b>Muse Spark 1.3<small>Meta AI</small></b></div>
+                                    <div class="lab"><span class="chip c5">Meta</span><b>Muse Wonder<small>Muse</small></b></div>
                                     <div class="lab"><span class="chip c3">xAI</span><b>Grok 4.7<small>Grok</small></b></div>
                                 </div>
                             </div>
@@ -2213,24 +2250,115 @@
                                 <div class="labs">
                                     <div class="lab"><span class="chip c1">Moonshot</span><b>Kimi K3<small>Čína</small></b></div>
                                     <div class="lab"><span class="chip c4">DeepSeek</span><b>DeepSeek V4.1<small>Čína</small></b></div>
-                                    <div class="lab"><span class="chip c3">Alibaba</span><b>Qwen 3.8<small>Čína</small></b></div>
                                     <div class="lab"><span class="chip c5">Z.ai</span><b>GLM-5.3<small>Čína</small></b></div>
-                                    <div class="lab"><span class="chip c2">Mistral</span><b>Mistral Large 3<small>Francie</small></b></div>
+                                    <div class="lab"><span class="chip c3">Alibaba</span><b>Qwen 3.6<small>Čína</small></b></div>
+                                    <div class="lab"><span class="chip c2">Mistral</span><b>Mistral Large 4<small>Francie</small></b></div>
                                 </div>
                             </div>
                         </div>
-                        <p class="note pop" style="--i:11">Stav k začátku října 2026. Všechny tyto modely mají kontextové okno kolem 1 milionu tokenů. Za pár měsíců bude seznam vypadat jinak.</p>
+                        <p class="note pop" style="--i:11">Stav k 4. 11. 2026. Google 28. 10. ohlásil ještě silnější Gemini 4 Carbon, zatím jen pro vybrané firmy. Většina modelů má kontextové okno kolem 1 milionu tokenů (Grok 4.7: 500 tisíc). Za pár měsíců bude seznam vypadat jinak.</p>
                     </div>
                 </div>
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>38 / 46</span>
+                    <span>38 / 60</span>
                 </div>
             </section>
 
             <!-- ===========================================
-                 SLIDE 39: KDO JE NEJLEPŠÍ?
+                 SLIDE 39: VELKÝ, NEBO MALÝ?
+                 =========================================== -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
+                    <span><b>část 5</b> · Modely dnes</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Velký, nebo malý?">
+                        <span class="tok pop" style="--i:1"><span class="txt c5">Velký</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c1">,</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c2"> nebo</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c3"> malý</span></span>
+                        <span class="tok pop" style="--i:5"><span class="txt c4">?</span></span>
+                        <span class="caret" style="--i:6"></span>
+                    </h2>
+
+                    <div class="content">
+                        <div class="cols" style="grid-template-columns:minmax(0,1fr) 520px;align-items:center;gap:56px">
+                            <div class="fam pop" style="--i:8">
+                                <span></span><span class="h">velký</span><span class="h">střední</span><span class="h">malý</span>
+                                <span class="chip c2">OpenAI</span><b>GPT-6 Astra</b><b>GPT-6.1 Sol</b><b>GPT-6 Luna</b>
+                                <span class="chip c1">Anthropic</span><b>Opus 5.5</b><b>Sonnet 5.5</b><b>Haiku 5.5</b>
+                                <span class="chip c4">Google</span><b>Gemini 4 Argon</b><b>Flash</b><b>Flash-Lite</b>
+                                <span></span><i class="c3">chytřejší, dražší</i><span></span><i class="c2">rychlý, levný</i>
+                            </div>
+                            <div class="card panel pop" style="--i:9">
+                                <h3>Cena za milion tokenů</h3>
+                                <p class="big" style="margin-top:20px;color:var(--tok-1)">100×</p>
+                                <p style="margin-top:10px">Vstup do GPT-6 Astra stojí 10 $, do GPT-6 Luna 0,10 $.</p>
+                                <p class="note" style="margin-top:18px">Ceníky API, listopad 2026.</p>
+                            </div>
+                        </div>
+                        <p class="pop" style="--i:10">Na třídění zpráv nebo shrnutí stačí malý model. Velký si nechte na <span class="hl c5">těžké úlohy</span>.</p>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>39 / 60</span>
+                </div>
+            </section>
+
+            <!-- ===========================================
+                 SLIDE 40: PŘEMÝŠLEJÍCÍ MODELY
+                 =========================================== -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
+                    <span><b>část 5</b> · Modely dnes</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Přemýšlející modely">
+                        <span class="tok pop" style="--i:1"><span class="txt c2">Přemýš</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c3">lející</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c4"> modely</span></span>
+                        <span class="caret" style="--i:4"></span>
+                    </h2>
+
+                    <div class="content">
+                        <div class="cols" style="grid-template-columns:600px minmax(0,1fr);gap:50px;align-items:stretch">
+                            <div class="stack pop" style="--i:8;gap:16px">
+                                <div class="card light" style="padding:22px 30px"><h3>otázka</h3><p style="margin-top:8px;font-size:38px;font-weight:800">Kolik je 17 × 24?</p></div>
+                                <div class="card panel think" style="padding:22px 30px"><h3>model si nejdřív píše poznámky</h3><pre>17 × 20 = 340
+17 × 4 = 68
+340 + 68 = 408</pre></div>
+                                <div class="card light" style="padding:22px 30px"><h3>odpověď</h3><p style="margin-top:8px;font-size:38px;font-weight:800">408</p></div>
+                            </div>
+                            <div class="card panel effort pop" style="--i:9">
+                                <h3>Claude Opus 5.5 · jak dlouho smí přemýšlet</h3>
+                                <div class="row" style="margin-top:26px;color:var(--panel-dim);font-size:20px"><span>úsilí</span><span>skóre v testech</span><span></span><span>čas</span></div>
+                                <div class="row"><span>low</span><span class="bar"><i class="c4" style="width:58%"></i></span><span class="p">35</span><span class="p">18 s</span></div>
+                                <div class="row"><span>medium</span><span class="bar"><i class="c2" style="width:80%"></i></span><span class="p">48</span><span class="p">30 s</span></div>
+                                <div class="row"><span>high</span><span class="bar"><i class="c1" style="width:87%"></i></span><span class="p">52</span><span class="p">54 s</span></div>
+                                <div class="row"><span>max</span><span class="bar"><i class="c3" style="width:98%"></i></span><span class="p">59</span><span class="p">11 min</span></div>
+                                <p style="margin-top:26px">Víc přemýšlení = <span class="hl c1">víc tokenů</span>. Chytřejší, ale pomalejší a asi 10× dražší.</p>
+                                <p class="note" style="margin-top:14px">Artificial Analysis, Intelligence Index v5, listopad 2026.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>40 / 60</span>
+                </div>
+            </section>
+
+            <!-- ===========================================
+                 SLIDE 41: KDO JE NEJLEPŠÍ?
                  =========================================== -->
             <section class="slide">
                 <div class="prompt">
@@ -2252,31 +2380,80 @@
                         <div class="cols two" style="align-items:stretch">
                             <div class="card light pop" style="--i:8">
                                 <h3>Arena · lidé hlasují naslepo</h3>
-                                <div class="rank"><span class="chip c4">1</span><span>Gemini 4 Argon</span><span>1525</span></div>
-                                <div class="rank"><span class="chip c1">2</span><span>Claude Opus 5.5</span><span>1504</span></div>
-                                <div class="rank"><span class="chip c5">3</span><span>Muse Spark 1.3</span><span>1494</span></div>
-                                <p class="note" style="margin-top:20px">Nejlepší model každé laboratoře, 2. 10. 2026. Rozdíl 20 bodů = výhra asi v 53 % soubojů.</p>
+                                <div class="rank"><span class="chip c4">1</span><span>Gemini 4 Carbon</span><span>1528</span></div>
+                                <div class="rank"><span class="chip c1">2</span><span>Claude Opus 5.5</span><span>1509</span></div>
+                                <div class="rank"><span class="chip c5">3</span><span>Muse Wonder</span><span>1507</span></div>
+                                <p class="note" style="margin-top:20px">Nejlepší model každé laboratoře, 27. 10. 2026. Rozdíl 20 bodů = výhra asi v 53 % soubojů.</p>
                             </div>
                             <div class="card light pop" style="--i:9">
                                 <h3>Artificial Analysis · sada testů</h3>
-                                <div class="rank"><span class="chip c1">1</span><span>Claude Opus 5.5</span><span>58</span></div>
-                                <div class="rank"><span class="chip c2">2</span><span>GPT-6 Astra</span><span>53</span></div>
-                                <div class="rank"><span class="chip c4">2</span><span>Gemini 4 Argon</span><span>53</span></div>
-                                <p class="note" style="margin-top:20px">Intelligence Index, nejlepší model každé laboratoře, říjen 2026.</p>
+                                <div class="rank"><span class="chip c4">1</span><span>Gemini 4 Carbon</span><span>60</span></div>
+                                <div class="rank"><span class="chip c1">2</span><span>Claude Opus 5.5</span><span>59</span></div>
+                                <div class="rank"><span class="chip c2">3</span><span>GPT-6 Astra</span><span>57</span></div>
+                                <p class="note" style="margin-top:20px">Intelligence Index v5, nejlepší model každé laboratoře, listopad 2026.</p>
                             </div>
                         </div>
-                        <p class="lead pop" style="--i:10">Záleží, <span class="hl c1">jak měříte</span> a na co model chcete. Vyzkoušejte sami.</p>
+                        <p class="lead pop" style="--i:10;font-size:48px">Vítěz je stejný, jenže Carbon zatím <span class="hl c3">nikdo z nás nevyzkouší</span>.</p>
                     </div>
                 </div>
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>39 / 46</span>
+                    <span>41 / 60</span>
                 </div>
             </section>
 
             <!-- ===========================================
-                 SLIDE 40: OTEVŘENÉ VS. UZAVŘENÉ
+                 SLIDE 42: JAK SE MODELY MĚŘÍ
+                 =========================================== -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
+                    <span><b>část 5</b> · Modely dnes</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Jak se modely měří">
+                        <span class="tok pop" style="--i:1"><span class="txt c1">Jak</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c2"> se</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c3"> modely</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c4"> měří</span></span>
+                        <span class="caret" style="--i:5"></span>
+                    </h2>
+
+                    <div class="content">
+                        <div class="cols two" style="align-items:stretch">
+                            <div class="card light pop" style="--i:8">
+                                <span class="chip c4" style="font-size:24px">testy (benchmarky)</span>
+                                <h4 style="margin-top:18px">Úlohy se správnou odpovědí</h4>
+                                <p style="margin-top:10px">Matematika, programování, vědecké otázky. Počítá se, kolik jich model vyřeší.</p>
+                                <ul class="pm">
+                                    <li><b>−</b><span>když jsou testy na internetu, model se je může naučit nazpaměť</span></li>
+                                </ul>
+                                <p class="note" style="margin-top:14px">Proto Artificial Analysis nově počítá 60 % skóre z neveřejných testů.</p>
+                            </div>
+                            <div class="card light pop" style="--i:9">
+                                <span class="chip c1" style="font-size:24px">arena</span>
+                                <h4 style="margin-top:18px">Lidé hlasují naslepo</h4>
+                                <p style="margin-top:10px">Dva anonymní modely odpoví na stejný dotaz. Člověk vybere lepší odpověď.</p>
+                                <ul class="pm">
+                                    <li><b>−</b><span>lidé mají rádi delší a hezky naformátované odpovědi, i když nejsou správnější</span></li>
+                                </ul>
+                                <p class="note" style="margin-top:14px">Arena to zčásti vyrovnává přepočtem, který styl odečte.</p>
+                            </div>
+                        </div>
+                        <div class="strip ask pop" style="--i:10"><span class="chip">?</span><p>Jak poznáte, že se model test naučil nazpaměť? <span class="step" style="display:inline-block;margin-left:14px;font-weight:500">Dejte mu nové úlohy, které nikde nebyly.</span></p></div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>42 / 60</span>
+                </div>
+            </section>
+
+            <!-- ===========================================
+                 SLIDE 43: OTEVŘENÉ VS. UZAVŘENÉ
                  =========================================== -->
             <section class="slide">
                 <div class="prompt">
@@ -2305,7 +2482,7 @@
                                     <li><b>+</b><span>obvykle nejvýkonnější, nic neinstalujete</span></li>
                                     <li><b>−</b><span>data jdou k firmě, model se může změnit nebo zmizet</span></li>
                                 </ul>
-                                <p class="note" style="margin-top:16px">GPT · Claude · Gemini · Grok</p>
+                                <p class="note" style="margin-top:16px">GPT · Claude · Gemini · Grok · Muse Wonder</p>
                             </div>
                             <div class="card panel pop" style="--i:10">
                                 <span class="chip c2" style="font-size:24px">otevřené váhy</span>
@@ -2315,26 +2492,508 @@
                                     <li><b>+</b><span>soukromí, kontrola, bez poplatků za tokeny</span></li>
                                     <li><b>−</b><span>potřebujete hardware, největší modely se na notebook nevejdou</span></li>
                                 </ul>
-                                <p class="note" style="margin-top:16px">DeepSeek · Qwen · Kimi · Llama · Gemma · Mistral</p>
+                                <p class="note" style="margin-top:16px">DeepSeek · Qwen · Kimi · GLM · Mistral · Gemma</p>
                             </div>
                         </div>
-                        <p class="note pop" style="--i:11">Otevřené váhy ≠ open source: trénovací data a kód většinou zveřejněné nejsou.</p>
+                        <p class="pop" style="--i:11;font-size:34px">Náskok uzavřených je malý: nejlepší otevřený model v Areně (GLM-5.3, 1481) ztrácí na špičku <span class="hl c1">asi 50 bodů</span>.</p>
+                        <p class="note pop" style="--i:12">Otevřené váhy ≠ open source: trénovací data a kód většinou zveřejněné nejsou.</p>
                     </div>
                 </div>
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>40 / 46</span>
+                    <span>43 / 60</span>
                 </div>
             </section>
 
             <!-- ===========================================
-                 SLIDE 41: HALUCINACE
+                 SLIDE 44: DEMO: SLEPÝ SOUBOJ
                  =========================================== -->
             <section class="slide">
                 <div class="prompt">
                     <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
-                    <span><b>část 6</b> · Co z toho plyne</span>
+                    <span><b>část 5</b> · Modely dnes</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="DEMO: slepý souboj">
+                        <span class="tok pop" style="--i:1"><span class="txt c2">DEMO</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c3">:</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c4"> slepý</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c5"> souboj</span></span>
+                        <span class="caret" style="--i:5"></span>
+                    </h2>
+
+                    <div class="content">
+                        <div class="cols" style="grid-template-columns:700px 1fr;align-items:center;gap:60px">
+                            <div class="card panel pop" style="--i:8">
+                                <h3>Otevřete</h3>
+                                <p style="margin-top:20px"><span class="chip c1" style="font-size:36px">arena.ai</span></p>
+                                <p class="note" style="margin-top:20px">režim, kde odpovídají dva anonymní modely</p>
+                                <p style="margin-top:34px;font-size:38px;font-weight:700;color:var(--tok-2)">Kdo pozná víc modelů podle odpovědi, vyhrává.</p>
+                            </div>
+                            <ol class="list" style="row-gap:20px">
+                                <li class="pop" style="--i:9"><span class="chip c5">01</span><p>Napište otázku, na kterou znáte odpověď. Klidně česky.</p></li>
+                                <li class="pop" style="--i:10"><span class="chip c1">02</span><p>Přečtěte si obě odpovědi a tipněte si, který model je který.</p></li>
+                                <li class="pop" style="--i:11"><span class="chip c2">03</span><p>Hlasujte. Teprve pak se ukáže, kdo to byl.</p></li>
+                                <li class="pop" style="--i:12"><span class="chip c3">04</span><p>Vyhrál dražší a slavnější model?</p></li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>44 / 60</span>
+                </div>
+            </section>
+
+            <!-- ===========================================
+                 SLIDE 45: CO JE PROMPT
+                 =========================================== -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
+                    <span><b>část 6</b> · Prompt engineering</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Co je prompt">
+                        <span class="tok pop" style="--i:1"><span class="txt c1">Co</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c2"> je</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c3"> prompt</span></span>
+                        <span class="caret" style="--i:4"></span>
+                    </h2>
+
+                    <div class="content">
+                        <p class="lead pop" style="--i:6;font-size:48px">Prompt = všechno, co modelu napíšete. <span class="hl c1">Model z toho jen pokračuje.</span></p>
+                        <div class="stack pop" style="--i:7;gap:18px">
+                            <div class="gen"><span class="chip c4">Recept na palačinky:</span><span class="chip blank">1. Smíchejte mouku, mléko a vejce…</span></div>
+                            <div class="gen"><span class="chip c5">Babička vždycky říkala, že palačinky</span><span class="chip blank">jsou lék na všechno.</span></div>
+                        </div>
+                        <p class="pop" style="--i:8">Stejné téma, jiný začátek = jiné pokračování. To už znáte z části 3: <span class="hl c2">kontext rozhoduje</span>.</p>
+                        <div class="strip panel pop" style="--i:9"><span class="chip c1">prompt engineering</span><p style="color:var(--paper)">Napsat kontext tak, aby nejpravděpodobnější pokračování byla odpověď, kterou chcete.</p></div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>45 / 60</span>
+                </div>
+            </section>
+
+            <!-- ===========================================
+                 SLIDE 46: MODEL NEČTE MYŠLENKY
+                 =========================================== -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
+                    <span><b>část 6</b> · Prompt engineering</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Model nečte myšlenky">
+                        <span class="tok pop" style="--i:1"><span class="txt c2">Model</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c3"> neč</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c4">te</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c5"> myš</span></span>
+                        <span class="tok pop" style="--i:5"><span class="txt c1">lenky</span></span>
+                        <span class="caret" style="--i:6"></span>
+                    </h2>
+
+                    <div class="content">
+                        <div class="cols" style="grid-template-columns:560px 1fr;align-items:stretch">
+                            <div class="card light pop" style="--i:8">
+                                <span class="chip c3" style="font-size:24px">vágní</span>
+                                <h4 style="margin-top:22px">„Napiš sloh.“</h4>
+                                <p style="margin-top:22px">Model si musí domyslet:</p>
+                                <div class="chips" style="margin-top:14px"><span class="chip c3" style="font-size:26px">o čem?</span><span class="chip c3" style="font-size:26px">pro koho?</span><span class="chip c3" style="font-size:26px">jak dlouhý?</span><span class="chip c3" style="font-size:26px">jakým stylem?</span></div>
+                            </div>
+                            <div class="card panel pop" style="--i:9">
+                                <span class="chip c2" style="font-size:24px">konkrétní</span>
+                                <h4 style="margin-top:22px;font-size:40px;line-height:1.15">„Napiš sloh o mém prvním dni na průmyslovce. Je to úkol do češtiny ve druháku. Asi 250 slov, vtipně, ale bez slangu.“</h4>
+                                <p class="step" style="margin-top:26px;color:var(--panel-dim)">Model teď ví:</p>
+                                <div class="chips step" style="margin-top:14px"><span class="chip c2" style="font-size:26px">o čem</span><span class="chip c2" style="font-size:26px">pro koho</span><span class="chip c2" style="font-size:26px">jak dlouhý</span><span class="chip c2" style="font-size:26px">jakým stylem</span></div>
+                            </div>
+                        </div>
+                        <p class="lead pop" style="--i:10">Co nenapíšete, si model domyslí. <span class="hl c5">Většinou průměrně.</span></p>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>46 / 60</span>
+                </div>
+            </section>
+
+            <!-- ===========================================
+                 SLIDE 47: PĚT INGREDIENCÍ
+                 =========================================== -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
+                    <span><b>část 6</b> · Prompt engineering</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Pět ingrediencí">
+                        <span class="tok pop" style="--i:1"><span class="txt c3">Pět</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c4"> ingred</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c5">iencí</span></span>
+                        <span class="caret" style="--i:4"></span>
+                    </h2>
+
+                    <div class="content">
+                        <div class="cols" style="grid-template-columns:540px minmax(0,1fr);gap:50px;align-items:center">
+                            <ul class="list" style="row-gap:16px">
+                                <li class="pop" style="--i:6;grid-template-columns:190px 1fr"><span class="chip c5">role</span><p style="font-size:30px">kdo má odpovídat</p></li>
+                                <li class="pop" style="--i:7;grid-template-columns:190px 1fr"><span class="chip c1">úkol</span><p style="font-size:30px">co přesně chcete</p></li>
+                                <li class="pop" style="--i:8;grid-template-columns:190px 1fr"><span class="chip c4">kontext</span><p style="font-size:30px">kdo jste a proč</p></li>
+                                <li class="pop" style="--i:9;grid-template-columns:190px 1fr"><span class="chip c2">formát</span><p style="font-size:30px">jak má vypadat výsledek</p></li>
+                                <li class="pop" style="--i:10;grid-template-columns:190px 1fr"><span class="chip c3">omezení</span><p style="font-size:30px">co nechcete</p></li>
+                            </ul>
+                            <div class="card panel anat pop" style="--i:11">
+                                <h3>Celý prompt</h3>
+                                <p><span class="hl wrap c5">Jsi trpělivý doučovatel matematiky.</span> <span class="hl wrap c1">Vysvětli mi, co je derivace.</span> <span class="hl wrap c4">Jsem ve druháku na průmyslovce, zítra píšu písemku a limity už umím.</span> <span class="hl wrap c2">Nejvýš 5 vět a jeden příklad s rychlostí auta.</span> <span class="hl wrap c3">Nepoužívej vzorce, které jsem nezmínil.</span></p>
+                            </div>
+                        </div>
+                        <p class="note pop" style="--i:12">Nemusí tam být vždy všech pět. Úkol a kontext jsou nejdůležitější.</p>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>47 / 60</span>
+                </div>
+            </section>
+
+            <!-- ===========================================
+                 SLIDE 48: UKAŽ PŘÍKLAD
+                 =========================================== -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
+                    <span><b>část 6</b> · Prompt engineering</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Ukaž příklad">
+                        <span class="tok pop" style="--i:1"><span class="txt c4">Uka</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c5">ž</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c1"> příklad</span></span>
+                        <span class="caret" style="--i:4"></span>
+                    </h2>
+
+                    <div class="content">
+                        <div class="cols" style="grid-template-columns:minmax(0,1fr) 520px;gap:50px;align-items:center">
+                            <div class="card panel shots pop" style="--i:6">
+                                <h3>prompt</h3>
+                                <p class="cmd">Přepiš zprávu spisovně.</p>
+                                <div class="shot"><span>hele dneska nepřídu, sem nemocnej</span><span class="arr">→</span><span class="out">Dobrý den, dnes nepřijdu, jsem nemocný.</span></div>
+                                <div class="shot"><span>nestihnu to, pošlu to zejtra</span><span class="arr">→</span><span class="out">Omlouvám se, nestihnu to. Pošlu to zítra.</span></div>
+                                <div class="shot"><span>v tom úkolu máte chybu</span><span class="arr">→</span><span class="out"><span class="step">Dobrý den, v zadání úkolu je podle mě chyba.</span></span></div>
+                            </div>
+                            <div class="stack" style="gap:28px">
+                                <p class="lead pop" style="--i:7">Dva příklady řeknou víc než odstavec popisu.</p>
+                                <p class="pop" style="--i:8;font-size:34px">Model pozná vzor a pokračuje v něm. Pořád jen <span class="hl c1">hádá další token</span>.</p>
+                                <p class="note pop" style="--i:9">Pro zvědavé: bez příkladu = zero-shot, s pár příklady = few-shot.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>48 / 60</span>
+                </div>
+            </section>
+
+            <!-- ===========================================
+                 SLIDE 49: FORMÁT VÝSTUPU
+                 =========================================== -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
+                    <span><b>část 6</b> · Prompt engineering</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Formát výstupu">
+                        <span class="tok pop" style="--i:1"><span class="txt c5">Form</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c1">át</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c2"> výstupu</span></span>
+                        <span class="caret" style="--i:4"></span>
+                    </h2>
+
+                    <div class="content">
+                        <div class="card light pop" style="--i:6;padding:26px 36px">
+                            <h3>prompt</h3>
+                            <p style="margin-top:10px;font-size:40px;font-weight:800">„Doporuč mi 3 filmy o umělé inteligenci…“</p>
+                        </div>
+                        <div class="stack pop" style="--i:7;gap:16px">
+                            <p style="font-size:34px">…a dopište, jak to má vypadat:</p>
+                            <div class="chips">
+                                <button class="peekbtn c2" type="button" data-peek="tabulka">jako tabulku: název, rok, proč ho vidět ↗</button>
+                                <button class="peekbtn c1" type="button" data-peek="odrazky">ve 3 odrážkách, každá do 10 slov ↗</button>
+                                <button class="peekbtn c4" type="button" data-peek="json">jako JSON ↗</button>
+                            </div>
+                        </div>
+                        <p class="lead pop" style="--i:8">Formát je nejsnazší vylepšení. <span class="hl c2">Řekněte, jak to má vypadat.</span></p>
+                        <div class="peek panel" id="peek-tabulka" hidden>
+                            <h3>Odpověď · tabulka</h3>
+                            <pre class="res">| Název                 | Rok  | Proč ho vidět                      |
+|-----------------------|------|------------------------------------|
+| 2001: Vesmírná odysea | 1968 | počítač HAL 9000, klasika žánru    |
+| Her                   | 2013 | vztah člověka a hlasového asistenta|
+| Ex Machina            | 2014 | test, jestli stroj opravdu myslí   |</pre>
+                            <p class="note">Ilustrační příklad · klik nebo Esc zavře</p>
+                        </div>
+                        <div class="peek panel" id="peek-odrazky" hidden>
+                            <h3>Odpověď · odrážky</h3>
+                            <pre class="res">• 2001: Vesmírná odysea – počítač, který nechce poslechnout
+• Her – zamilovat se do hlasového asistenta
+• Ex Machina – umí stroj opravdu myslet?</pre>
+                            <p class="note">Ilustrační příklad · klik nebo Esc zavře</p>
+                        </div>
+                        <div class="peek panel" id="peek-json" hidden>
+                            <h3>Odpověď · JSON</h3>
+                            <pre class="res">[
+  { "nazev": "2001: Vesmírná odysea", "rok": 1968 },
+  { "nazev": "Her", "rok": 2013 },
+  { "nazev": "Ex Machina", "rok": 2014 }
+]</pre>
+                            <p class="note">JSON se hodí, když odpověď čte program, ne člověk · klik nebo Esc zavře</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>49 / 60</span>
+                </div>
+            </section>
+
+            <!-- ===========================================
+                 SLIDE 50: KROK ZA KROKEM
+                 =========================================== -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
+                    <span><b>část 6</b> · Prompt engineering</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Krok za krokem">
+                        <span class="tok pop" style="--i:1"><span class="txt c1">Krok</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c2"> za</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c3"> krokem</span></span>
+                        <span class="caret" style="--i:4"></span>
+                    </h2>
+
+                    <div class="content">
+                        <div class="cols two" style="align-items:stretch">
+                            <div class="card light pop" style="--i:6">
+                                <span class="chip c1" style="font-size:24px">nech ho přemýšlet</span>
+                                <h4 style="margin-top:18px">„Než odpovíš, postupuj krok za krokem.“</h4>
+                                <p style="margin-top:14px">Každý napsaný token je další kousek výpočtu. Mezivýsledky zůstanou v kontextu a model z nich vychází.</p>
+                                <p class="note" style="margin-top:14px">Přemýšlející modely z části 5 to dělají samy.</p>
+                            </div>
+                            <div class="card light pop" style="--i:7">
+                                <span class="chip c4" style="font-size:24px">rozděl velký úkol</span>
+                                <h4 style="margin-top:18px">Ne „napiš celou seminárku“</h4>
+                                <div class="flow" style="margin-top:22px;gap:40px">
+                                    <div style="min-height:0;font-size:26px"><b>01</b>osnova</div>
+                                    <div style="min-height:0;font-size:26px"><b>02</b>kapitola po kapitole</div>
+                                    <div style="min-height:0;font-size:26px"><b>03</b>kontrola</div>
+                                </div>
+                                <p style="margin-top:18px">Po každém kroku si výsledek přečtete a opravíte.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>50 / 60</span>
+                </div>
+            </section>
+
+            <!-- ===========================================
+                 SLIDE 51: AŤ SE PTÁ ON
+                 =========================================== -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
+                    <span><b>část 6</b> · Prompt engineering</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Ať se ptá on">
+                        <span class="tok pop" style="--i:1"><span class="txt c2">Ať</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c3"> se</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c4"> ptá</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c5"> on</span></span>
+                        <span class="caret" style="--i:5"></span>
+                    </h2>
+
+                    <div class="content">
+                        <div class="cols" style="grid-template-columns:minmax(0,1fr) 640px;gap:50px;align-items:stretch">
+                            <div class="card panel pop" style="--i:6">
+                                <h3>vy</h3>
+                                <p style="margin-top:12px;font-size:36px;font-weight:700">„Chci naplánovat výlet na kole. Než začneš, polož mi 3 otázky, které potřebuješ vědět.“</p>
+                                <h3 style="margin-top:28px">model</h3>
+                                <div class="chips step" style="margin-top:12px"><span class="chip c1" style="font-size:26px">Kolik km zvládneš?</span><span class="chip c2" style="font-size:26px">Silnice, nebo terén?</span><span class="chip c4" style="font-size:26px">Odkud vyrážíš?</span></div>
+                            </div>
+                            <div class="stack pop" style="--i:7;gap:24px">
+                                <p class="lead">První odpověď je <span class="hl c5">návrh</span>, ne konec.</p>
+                                <div class="flow vert">
+                                    <div>napište prompt</div>
+                                    <div>přečtěte odpověď</div>
+                                    <div class="loop">doplňte, co chybí, a znovu ↺</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>51 / 60</span>
+                </div>
+            </section>
+
+            <!-- ===========================================
+                 SLIDE 52: CO NEFUNGUJE
+                 =========================================== -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
+                    <span><b>část 6</b> · Prompt engineering</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Co nefunguje">
+                        <span class="tok pop" style="--i:1"><span class="txt c3">Co</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c4"> ne</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c5">fun</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c1">guje</span></span>
+                        <span class="caret" style="--i:5"></span>
+                    </h2>
+
+                    <div class="content">
+                        <div class="cols two yesno">
+                            <div class="card c3 pop" style="--i:6">
+                                <h4>Nepomůže</h4>
+                                <ul class="tips">
+                                    <li><b>„Jsi nejlepší expert na světě.“</b><span>Změní tón, ale nepřidá znalosti, které model nemá.</span></li>
+                                    <li><b>„Nehalucinuj.“</b><span>Model neví, kdy si vymýšlí.</span></li>
+                                    <li><b>„Dám ti dýško.“</b><span>U dnešních modelů bez spolehlivého efektu.</span></li>
+                                </ul>
+                            </div>
+                            <div class="card c2 pop" style="--i:7">
+                                <h4>Pomůže</h4>
+                                <ul class="tips">
+                                    <li><b>„Když nevíš, napiš, že nevíš.“</b><span>Dovolí modelu přiznat nejistotu.</span></li>
+                                    <li><b>„Odpovídej jen podle tohoto textu: …“</b><span>Fakta mu dáte do kontextu.</span></li>
+                                    <li><b>„U každého tvrzení napiš zdroj.“</b><span>Dá se pak ověřit.</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p class="lead pop" style="--i:8">Prompt nezmění, co model ví. Změní, <span class="hl c1">jak to použije</span>.</p>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>52 / 60</span>
+                </div>
+            </section>
+
+            <!-- ===========================================
+                 SLIDE 53: DEMO: PROMPT SOUBOJ
+                 =========================================== -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
+                    <span><b>část 6</b> · Prompt engineering</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="DEMO: prompt souboj">
+                        <span class="tok pop" style="--i:1"><span class="txt c4">DEMO</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c5">:</span></span>
+                        <span class="tok pop" style="--i:3"><span class="txt c1"> prompt</span></span>
+                        <span class="tok pop" style="--i:4"><span class="txt c2"> sou</span></span>
+                        <span class="tok pop" style="--i:5"><span class="txt c3">boj</span></span>
+                        <span class="caret" style="--i:6"></span>
+                    </h2>
+
+                    <div class="content">
+                        <div class="cols" style="grid-template-columns:700px 1fr;align-items:center;gap:60px">
+                            <div class="card panel pop" style="--i:8">
+                                <h3>Start</h3>
+                                <p style="margin-top:14px"><span class="chip c3" style="font-size:36px">Napiš pozvánku.</span></p>
+                                <h3 style="margin-top:30px">Cíl</h3>
+                                <p style="margin-top:12px">Pozvánka na náš kroužek pro spolužáky, kterou byste opravdu poslali na Discord.</p>
+                                <p style="margin-top:28px;font-size:38px;font-weight:700;color:var(--tok-2)">Nejlepší pozvánka jde na Discord.</p>
+                            </div>
+                            <ol class="list" style="row-gap:20px">
+                                <li class="pop" style="--i:9"><span class="chip c5">01</span><p>Pošlete modelu startovní prompt. Výsledek si uložte.</p></li>
+                                <li class="pop" style="--i:10"><span class="chip c1">02</span><p>Přidejte ingredience: role, kontext, formát, omezení.</p></li>
+                                <li class="pop" style="--i:11"><span class="chip c2">03</span><p>Dejte mu příklad, nebo ať se vás nejdřív zeptá.</p></li>
+                                <li class="pop" style="--i:12"><span class="chip c3">04</span><p>Porovnejte první a poslední verzi se sousedem.</p></li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>53 / 60</span>
+                </div>
+            </section>
+
+            <!-- ===========================================
+                 SLIDE 54: TAHÁK
+                 =========================================== -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
+                    <span><b>část 6</b> · Prompt engineering</span>
+                </div>
+
+                <div class="body">
+                    <h2 class="tokens sm" aria-label="Tahák">
+                        <span class="tok pop" style="--i:1"><span class="txt c5">Ta</span></span>
+                        <span class="tok pop" style="--i:2"><span class="txt c1">hák</span></span>
+                        <span class="caret" style="--i:3"></span>
+                    </h2>
+
+                    <div class="content">
+                        <ul class="list wide" style="row-gap:18px;grid-template-columns:1fr">
+                            <li class="pop" style="--i:5;grid-template-columns:300px 1fr"><span class="chip c5">kdo?</span><p style="font-size:36px">Role: kdo má odpovídat.</p></li>
+                            <li class="pop" style="--i:6;grid-template-columns:300px 1fr"><span class="chip c1">co?</span><p style="font-size:36px">Úkol jasně, jednou větou.</p></li>
+                            <li class="pop" style="--i:7;grid-template-columns:300px 1fr"><span class="chip c4">pro koho?</span><p style="font-size:36px">Kontext: kdo jste a co model o vás neví.</p></li>
+                            <li class="pop" style="--i:8;grid-template-columns:300px 1fr"><span class="chip c2">jak?</span><p style="font-size:36px">Formát a délka výsledku.</p></li>
+                            <li class="pop" style="--i:9;grid-template-columns:300px 1fr"><span class="chip c3">ukázka</span><p style="font-size:36px">Příklad, když záleží na stylu.</p></li>
+                            <li class="pop" style="--i:10;grid-template-columns:300px 1fr"><span class="chip c1">a pak</span><p style="font-size:36px">Přečtěte, doplňte, fakta ověřte.</p></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="foot">
+                    <span>Delta <b>♥</b> AI</span>
+                    <span>54 / 60</span>
+                </div>
+            </section>
+
+            <!-- ===========================================
+                 SLIDE 55: HALUCINACE
+                 =========================================== -->
+            <section class="slide">
+                <div class="prompt">
+                    <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
+                    <span><b>část 7</b> · Co z toho plyne</span>
                 </div>
 
                 <div class="body">
@@ -2356,17 +3015,17 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>41 / 46</span>
+                    <span>55 / 60</span>
                 </div>
             </section>
 
             <!-- ===========================================
-                 SLIDE 42: CO UMÍ A CO NE
+                 SLIDE 56: CO UMÍ A CO NE
                  =========================================== -->
             <section class="slide">
                 <div class="prompt">
                     <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
-                    <span><b>část 6</b> · Co z toho plyne</span>
+                    <span><b>část 7</b> · Co z toho plyne</span>
                 </div>
 
                 <div class="body">
@@ -2396,17 +3055,17 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>42 / 46</span>
+                    <span>56 / 60</span>
                 </div>
             </section>
 
             <!-- ===========================================
-                 SLIDE 43: KVÍZ
+                 SLIDE 57: KVÍZ
                  =========================================== -->
             <section class="slide">
                 <div class="prompt">
                     <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
-                    <span><b>část 6</b> · Co z toho plyne</span>
+                    <span><b>část 7</b> · Co z toho plyne</span>
                 </div>
 
                 <div class="body">
@@ -2429,17 +3088,17 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>43 / 46</span>
+                    <span>57 / 60</span>
                 </div>
             </section>
 
             <!-- ===========================================
-                 SLIDE 44: SHRNUTÍ
+                 SLIDE 58: SHRNUTÍ
                  =========================================== -->
             <section class="slide">
                 <div class="prompt">
                     <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
-                    <span><b>část 6</b> · Co z toho plyne</span>
+                    <span><b>část 7</b> · Co z toho plyne</span>
                 </div>
 
                 <div class="body">
@@ -2462,17 +3121,17 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>44 / 46</span>
+                    <span>58 / 60</span>
                 </div>
             </section>
 
             <!-- ===========================================
-                 SLIDE 45: ÚKOL A ZDROJE
+                 SLIDE 59: ÚKOL A ZDROJE
                  =========================================== -->
             <section class="slide">
                 <div class="prompt">
                     <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
-                    <span><b>část 6</b> · Co z toho plyne</span>
+                    <span><b>část 7</b> · Co z toho plyne</span>
                 </div>
 
                 <div class="body">
@@ -2506,17 +3165,17 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>45 / 46</span>
+                    <span>59 / 60</span>
                 </div>
             </section>
 
             <!-- ===========================================
-                 SLIDE 46: PŘÍŠTĚ
+                 SLIDE 60: PŘÍŠTĚ
                  =========================================== -->
             <section class="slide">
                 <div class="prompt">
                     <span><b>ai_101</b> · lesson 1 · Jak funguje jazykový model</span>
-                    <span><b>část 6</b> · Co z toho plyne</span>
+                    <span><b>část 7</b> · Co z toho plyne</span>
                 </div>
 
                 <div class="body">
@@ -2534,7 +3193,7 @@
 
                 <div class="foot">
                     <span>Delta <b>♥</b> AI</span>
-                    <span>46 / 46</span>
+                    <span>60 / 60</span>
                 </div>
             </section>
 

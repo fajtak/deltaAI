@@ -924,16 +924,16 @@
 
                     <div class="reveal" style="margin-top: 24px;">
                         <div style="font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); margin-bottom: 8px;">Hierarchie pojmů:</div>
-                        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                            <div style="background: rgba(0,245,212,0.15); border: 1px solid var(--neural-cyan); border-radius: 6px; padding: 8px 40px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-cyan);">AGI (obecná AI) – zatím neexistuje</div>
-                            <div style="color: var(--text-dim);">↓</div>
-                            <div style="background: rgba(247,37,133,0.15); border: 1px solid var(--neural-magenta); border-radius: 6px; padding: 8px 60px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-magenta);">AI – umělá inteligence</div>
-                            <div style="color: var(--text-dim);">↓</div>
-                            <div style="background: rgba(254,228,64,0.15); border: 1px solid var(--neural-yellow); border-radius: 6px; padding: 8px 80px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-yellow);">Machine Learning</div>
-                            <div style="color: var(--text-dim);">↓</div>
-                            <div style="background: rgba(0,245,212,0.08); border: 1px solid rgba(0,245,212,0.3); border-radius: 6px; padding: 8px 100px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-cyan);">Deep Learning</div>
-                            <div style="color: var(--text-dim);">↓</div>
-                            <div style="background: rgba(247,37,133,0.08); border: 1px solid rgba(247,37,133,0.3); border-radius: 6px; padding: 8px 120px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-magenta);">LLM (dnes)</div>
+                        <div style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px;">
+                            <div style="background: rgba(0,245,212,0.15); border: 1px solid var(--neural-cyan); border-radius: 6px; padding: 8px 20px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-cyan);">AGI (obecná AI) – zatím neexistuje</div>
+                            <div style="color: var(--text-dim);">⊃</div>
+                            <div style="background: rgba(247,37,133,0.15); border: 1px solid var(--neural-magenta); border-radius: 6px; padding: 8px 20px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-magenta);">AI – umělá inteligence</div>
+                            <div style="color: var(--text-dim);">⊃</div>
+                            <div style="background: rgba(254,228,64,0.15); border: 1px solid var(--neural-yellow); border-radius: 6px; padding: 8px 20px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-yellow);">Machine Learning</div>
+                            <div style="color: var(--text-dim);">⊃</div>
+                            <div style="background: rgba(0,245,212,0.08); border: 1px solid rgba(0,245,212,0.3); border-radius: 6px; padding: 8px 20px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-cyan);">Deep Learning</div>
+                            <div style="color: var(--text-dim);">⊃</div>
+                            <div style="background: rgba(247,37,133,0.08); border: 1px solid rgba(247,37,133,0.3); border-radius: 6px; padding: 8px 20px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-magenta);">LLM (dnes)</div>
                         </div>
                     </div>
                 </div>
@@ -1766,16 +1766,16 @@
                         <strong>Bezpečnostní trénink:</strong> RLHF je důvod, proč moderní LLM odmítají nebezpečné požadavky.
                     </blockquote>
 
-                    <div class="cols reveal" style="margin-top: 24px;">
-                        <div class="card">
+                    <div class="cols reveal" style="margin-top: 12px;">
+                        <div class="card" style="padding: 16px 24px;">
                             <div class="card-title">📊 Kolik práce to stojí?</div>
                             <div class="card-text">OpenAI najal tisíce annotátorů z Keni a Evropy. Každý hodnotitel stráví stovky hodin posuzováním odpovědí. Náklady: desítky milionů dolarů.</div>
                         </div>
-                        <div class="card">
+                        <div class="card" style="padding: 16px 24px;">
                             <div class="card-title">🆕 DPO – nová cesta</div>
                             <div class="card-text">Direct Preference Optimization – obechází reward model. Přímo optimalizuje z preferencí lidí. Jednodušší, levnější, stále efektivní.</div>
                         </div>
-                        <div class="card">
+                        <div class="card" style="padding: 16px 24px;">
                             <div class="card-title">🛡️ Constitutional AI</div>
                             <div class="card-text">Anthropic používá sadu principů ("ústavu"), podle kterých AI hodnotí vlastní odpovědi. Méně závislosti na lidech.</div>
                         </div>
