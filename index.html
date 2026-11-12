@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delta ♥ AI · ai_101</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bp: #123f8f;
+    --bp-dk: #0b2a63;
+    --line: rgba(255,255,255,.85);
+    --line-soft: rgba(255,255,255,.35);
+    --faint: rgba(255,255,255,.10);
+    --ink: #f4f7ff;
+    --dim: #b4c4e6;
+    --hi: #ffd23f;
+    --font-display: 'Bricolage Grotesque', 'Arial Black', sans-serif;
+    --font-mono: 'Martian Mono', 'Consolas', monospace;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bp); }
+  body {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    background-color: var(--bp);
+    background-image:
+      linear-gradient(var(--faint) 1px, transparent 1px),
+      linear-gradient(90deg, var(--faint) 1px, transparent 1px);
+    background-size: 32px 32px;
+    min-height: 100vh;
+  }
+  main { max-width: 960px; margin: 0 auto; padding: 56px 16px 72px; }
+
+  header { border-bottom: 2px solid var(--line); padding-bottom: 24px; margin-bottom: 40px; }
+  .kicker { font-family: var(--font-mono); font-size: 13px; letter-spacing: .08em; color: var(--dim); text-transform: uppercase; }
+  h1 { font-size: clamp(40px, 8vw, 72px); font-weight: 800; line-height: 1; margin: 12px 0 12px; letter-spacing: -.02em; }
+  h1 .heart { color: var(--hi); }
+  .lead { color: var(--dim); font-size: 18px; margin: 0; max-width: 60ch; }
+
+  section { margin-bottom: 44px; }
+  h2 {
+    font-family: var(--font-mono); font-size: 14px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--hi);
+    margin: 0 0 14px; display: flex; align-items: center; gap: 12px;
+  }
+  h2::after { content: ""; flex: 1; border-top: 1px dashed var(--line-soft); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .card {
+    display: block; text-decoration: none; color: var(--ink);
+    border: 1.5px solid var(--line-soft); border-radius: 6px;
+    padding: 16px 18px; background: rgba(11,42,99,.55);
+    transition: border-color .15s, transform .15s, background .15s;
+  }
+  .card:hover, .card:focus-visible { border-color: var(--hi); background: var(--bp-dk); transform: translateY(-2px); outline: none; }
+  .card .num { font-family: var(--font-mono); font-size: 12px; color: var(--dim); }
+  .card .name { display: block; font-size: 20px; font-weight: 700; line-height: 1.2; margin-top: 6px; }
+  .card .sub { display: block; font-size: 14px; color: var(--dim); margin-top: 6px; }
+
+  .lesson { border: 1.5px solid var(--line-soft); border-radius: 6px; background: rgba(11,42,99,.55); padding: 18px; }
+  .lesson + .lesson { margin-top: 12px; }
+  .lesson-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .lesson-head .num { font-family: var(--font-mono); font-size: 13px; color: var(--hi); }
+  .lesson-head h3 { margin: 0; font-size: 24px; font-weight: 800; }
+  .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .links a {
+    font-family: var(--font-mono); font-size: 13px; text-decoration: none;
+    color: var(--ink); border: 1px solid var(--line-soft); border-radius: 999px;
+    padding: 7px 14px; transition: border-color .15s, color .15s;
+  }
+  .links a.main { border-color: var(--line); font-weight: 600; }
+  .links a:hover, .links a:focus-visible { border-color: var(--hi); color: var(--hi); outline: none; }
+  .note { font-size: 13px; color: var(--dim); margin: 10px 0 0; }
+
+  footer { font-family: var(--font-mono); font-size: 12px; color: var(--dim); border-top: 1px dashed var(--line-soft); padding-top: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="kicker">ai_101 · materiály kurzu</div>
+    <h1>Delta <span class="heart">♥</span> AI</h1>
+    <p class="lead">Prezentace, kvízy, diskuze a týdenní novinky z kurzu. Všechno se otevírá přímo v prohlížeči.</p>
+  </header>
+
+  <section>
+    <h2>Lekce</h2>
+
+    <div class="lesson">
+      <div class="lesson-head"><span class="num">00</span><h3>Úvod</h3></div>
+      <div class="links">
+        <a class="main" href="lesson_00/presentation.html">Prezentace</a>
+      </div>
+    </div>
+
+    <div class="lesson">
+      <div class="lesson-head"><span class="num">01</span><h3>Jak funguje jazykový model</h3></div>
+      <div class="links">
+        <a class="main" href="lesson_01/presentation.html">Prezentace</a>
+        <a href="lesson_01/openCode_presentation.html">OpenCode</a>
+        <a href="lesson_01/srovnani_chatbotu.html">Srovnání chatbotů</a>
+      </div>
+    </div>
+
+    <div class="lesson">
+      <div class="lesson-head"><span class="num">02</span><h3>Automatizace s LLM</h3></div>
+      <div class="links">
+        <a class="main" href="lesson_02/presentation.html">Prezentace</a>
+      </div>
+    </div>
+
+    <div class="lesson">
+      <div class="lesson-head"><span class="num">03</span><h3>Lokální modely</h3></div>
+      <div class="links">
+        <a class="main" href="lesson_03/presentation.html">Prezentace</a>
+        <a href="lesson_03/chat.html">Mini chat s Ollamou</a>
+        <a href="lesson_03/postava.txt">Ukázkový Modelfile</a>
+      </div>
+      <p class="note">Mini chat funguje jen na počítači, kde běží Ollama.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Opakovací kvízy</h2>
+    <div class="grid">
+      <a class="card" href="lesson_01/kviz_cast_1.html"><span class="num">Část 1</span><span class="name">Opakování lekce 1</span></a>
+      <a class="card" href="lesson_01/kviz_cast_2.html"><span class="num">Část 2</span><span class="name">Tokenizace</span></a>
+      <a class="card" href="lesson_01/kviz_cast_3_4.html"><span class="num">Části 3–4</span><span class="name">Kontext a trénink</span></a>
+      <a class="card" href="lesson_01/kviz_cast_5_6.html"><span class="num">Části 5–6</span><span class="name">Modely dnes a prompt engineering</span></a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Diskuze</h2>
+    <div class="grid">
+      <a class="card" href="diskuze/01_je_to_umeni.html"><span class="num">01</span><span class="name">Je to umění?</span></a>
+      <a class="card" href="diskuze/02_agent_na_uteku.html"><span class="num">02</span><span class="name">Agent na útěku</span></a>
+      <a class="card" href="diskuze/04_verite_svemu_chatbotu.html"><span class="num">04</span><span class="name">Věříte svému chatbotu?</span></a>
+    </div>
+  </section>
+
+  <section>
+    <h2>AI týdeník</h2>
+    <div class="grid">
+      <a class="card" href="news/novinky_2026-11-10.html"><span class="num">10. 11. 2026</span><span class="name">AI týdeník č. 4</span><span class="sub">Nejnovější</span></a>
+      <a class="card" href="news/novinky_2026-11-03.html"><span class="num">3. 11. 2026</span><span class="name">AI týdeník č. 3</span></a>
+      <a class="card" href="news/novinky_2026-10-20.html"><span class="num">14.–20. 10. 2026</span><span class="name">AI týdeník č. 2</span></a>
+      <a class="card" href="news/novinky_2026-10-14.html"><span class="num">14. 10. 2026</span><span class="name">AI týdeník č. 1</span></a>
+    </div>
+  </section>
+
+  <footer>ai_101 · Delta</footer>
+</main>
+</body>
+</html>
