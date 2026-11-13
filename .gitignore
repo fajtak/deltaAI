@@ -12,3 +12,6 @@ lesson_00/*.jpg
 lesson_00/*.png
 lesson_00/*.gif
 lesson_00/myProjects/
+
+# Nepoužité materiály – nejsou pro studenty
+unused/
