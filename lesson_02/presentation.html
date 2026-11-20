@@ -714,6 +714,27 @@ Nejvyšší hora České republiky je<span class="c">&lt;turn|&gt;</span>
   </div>
 </section>
 
+<!-- Vsuvka: localhost a porty -->
+<section class="slide" data-sec="04 · OLLAMA">
+  <div class="wrap">
+    <div class="kicker r">Vsuvka</div>
+    <h2 class="r d1">Co je <em>localhost:11434</em>?</h2>
+    <div class="body col" style="gap:40px;justify-content:center">
+      <div class="r d2" style="display:flex;justify-content:center;align-items:flex-start;gap:28px;font-family:var(--font-mono)">
+        <div style="text-align:center"><div style="font-size:84px;color:var(--hi);line-height:1">localhost</div><div class="note" style="margin-top:14px">tenhle počítač · 127.0.0.1</div></div>
+        <div style="font-size:84px;line-height:1;color:var(--dim)">:</div>
+        <div style="text-align:center"><div style="font-size:84px;color:var(--hi);line-height:1">11434</div><div class="note" style="margin-top:14px">port · který program</div></div>
+      </div>
+      <div class="g3 r d3">
+        <div class="card"><span class="tag">PŘIROVNÁNÍ</span><h3>Panelák</h3><p>Počítač je dům, <b>localhost</b> znamená „tady u nás“. <b>Port</b> je číslo bytu. Každý program bydlí ve svém.</p></div>
+        <div class="card"><span class="tag">ZNÁMÉ PORTY</span><p style="font-family:var(--font-mono);font-size:26px;line-height:1.7"><b>443</b> · weby (HTTPS)<br><b>11434</b> · Ollama<br><b>8000</b> · náš chat.html</p></div>
+        <div class="card"><span class="tag">BEZPEČNOST</span><h3>Jen zevnitř</h3><p>Ollama poslouchá jen na localhost. Spolužák ze sítě se k&nbsp;ní <b>nedostane</b>, data neopustí počítač.</p></div>
+      </div>
+      <p class="note r d4"><b>Zkus po instalaci:</b> napiš do prohlížeče <code>localhost:11434</code>. Odpoví „Ollama is running“.</p>
+    </div>
+  </div>
+</section>
+
 <!-- Instalace -->
 <section class="slide" data-sec="04 · OLLAMA">
   <div class="wrap">
@@ -941,6 +962,43 @@ Na moderní věci reaguješ udiveně."""</div>
   </div>
 </section>
 
+<!-- BottleCap AI: kdo to je -->
+<section class="slide" data-sec="04 · OLLAMA">
+  <div class="wrap">
+    <div class="kicker r">Česká stopa</div>
+    <h2 class="r d1">BottleCap AI: <em>modely, co míň kecají</em></h2>
+    <div class="body g3">
+      <div class="card r d2"><span class="tag">KDO</span><h3>Praha, 2025</h3><p><b>Tomáš Mikolov</b> vymyslel word2vec (Google), jeden ze základů dnešních jazykových modelů. <b>Jaroslav Beck</b> spoluzaložil studio, které udělalo Beat Saber.</p></div>
+      <div class="card r d3"><span class="tag">CO DĚLAJÍ</span><h3>ThinkingCap</h3><p>Vezmou cizí otevřený model (Qwen, Gemma, Nemotron) a dotrénují ho, aby <b>přemýšlel kratší dobu</b>. Zdarma na Hugging Face.</p></div>
+      <div class="card hi r d4"><span class="tag">GEMMA 4 26B · ŘÍJEN 2026</span><div class="big">−39 %</div><p>tokenů na přemýšlení. Úspěšnost v testech <b>75,2 → 75,0 %</b>, tedy skoro beze změny.</p></div>
+    </div>
+    <p class="note r d5" style="margin-top:30px"><b>Proč to řešit:</b> každý token stojí čas a elektřinu. Méně tokenů = rychlejší odpověď na tvém notebooku i levnější provoz v cloudu.</p>
+  </div>
+</section>
+
+<!-- BottleCap AI: pokus -->
+<section class="slide" data-sec="04 · OLLAMA">
+  <div class="wrap">
+    <span class="badge task r"><span>POKUS</span><span class="time">10 MIN</span></span>
+    <h2 class="r d1" style="margin-top:30px">Ověř si to: <em>kdo přemýšlí kratší dobu?</em></h2>
+    <div class="body g2" style="align-items:start">
+      <div class="col r d2">
+        <div class="card hi"><span class="tag">VŠICHNI · V PROHLÍŽEČI</span><h3>Souboj vedle sebe</h3><p>Jedna otázka, dva modely: původní Qwen a ThinkingCap. Porovnej <b>počet tokenů</b> a jestli jsou obě odpovědi správně.</p><div class="ex"><small>HUGGING FACE SPACE · KLIKNI</small><a href="https://huggingface.co/spaces/bottlecapai/ThinkingCap-vs-Qwen3.8-27B" target="_blank" rel="noopener">bottlecapai/ThinkingCap-vs-Qwen3.8-27B ↗</a></div></div>
+        <p class="note">Zkus slovní úlohu z matiky nebo hádanku. Na „Ahoj“ se nic přemýšlet nemusí.</p>
+      </div>
+      <div class="col r d3">
+        <div class="term" style="font-size:20px"><span class="bar">16+ GB RAM · LOKÁLNĚ PŘES OLLAMU</span><span class="p">$</span> ollama run --verbose \
+  hf.co/bottlecapai/ThinkingCap-gemma-4-26B-A4B-it-GGUF:IQ4_XS
+<span class="c">pulling …  100% ▕████████▏ 13.6 GB</span>
+<span class="o">&gt;&gt;&gt;</span> Vlak jede 80 km/h, za jak dlouho ujede 200 km?
+<span class="c">eval count:  … tokens</span>
+<span class="c">eval rate:   … tokens/s</span></div>
+        <div class="card"><span class="tag">HÁDANKA</span><p>Model má <b>26 miliard</b> parametrů, a přesto jede svižně. Proč? Na každý token jich počítá jen <b>4 miliardy</b> (A4B).</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- =====================================================
      ČÁST 05 · ŘEČ NA TEXT
      ===================================================== -->
@@ -1053,6 +1111,34 @@ Na moderní věci reaguješ udiveně."""</div>
 <span class="p">$</span> cat prepis.txt | ollama run gemma4:e4b \
     "Udělej z přepisu výpisky v bodech."</div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stejná nahrávka, tři přepisy: Gemma a Canary lokálně vs. ElevenLabs Scribe -->
+<section class="slide" data-sec="05 · ŘEČ">
+  <div class="wrap">
+    <span class="badge r"><span>UKÁZKA</span><span class="time">5 MIN</span></span>
+    <h2 class="r d1" style="margin-top:30px">Stejná nahrávka, <em>tři přepisy</em></h2>
+    <div class="body col" style="gap:34px;margin-top:40px">
+      <div class="g3 r d2">
+        <div class="card"><span class="tag">LOKÁLNĚ · GEMMA 4 E4B</span>
+          <div style="display:flex;gap:36px;align-items:baseline"><div><div class="big" style="font-size:72px">137 s</div><p>přepis</p></div><div><div class="big no" style="font-size:72px">8,3 %</div><p>chybných slov</p></div></div>
+          <p style="margin-top:14px">Všeuměl v Ollamě. Zdarma, nahrávka <b>zůstane u tebe</b>.</p></div>
+        <div class="card"><span class="tag">LOKÁLNĚ · CANARY 1B V2</span>
+          <div style="display:flex;gap:36px;align-items:baseline"><div><div class="big" style="font-size:72px"> 33 s</div><p>přepis</p></div><div><div class="big no" style="font-size:72px">7,8 %</div><p>chybných slov</p></div></div>
+          <p style="margin-top:14px">Specialista od NVIDIE přes <code>onnx-asr</code>. Zdarma, offline.</p></div>
+        <div class="card hi"><span class="tag">CLOUD · ELEVENLABS SCRIBE V3</span>
+          <div style="display:flex;gap:36px;align-items:baseline"><div><div class="big" style="font-size:72px">16 s</div><p>přepis</p></div><div><div class="big ok" style="font-size:72px">1,0 %</div><p>chybných slov</p></div></div>
+          <p style="margin-top:14px">Placené API, nahrávka <b>odchází na jejich server</b>.</p></div>
+      </div>
+      <table class="t r d3" style="font-size:25px">
+        <tr><th>ORIGINÁL</th><th>GEMMA</th><th>CANARY</th><th>SCRIBE</th></tr>
+        <tr><td>Zápočet dostanete</td><td class="ok">✓</td><td><b class="no">Za počet</b> dostanete</td><td class="ok">✓</td></tr>
+        <tr><td>na veřejné Wi-Fi v kavárně</td><td class="ok">✓</td><td>na veřejné <b class="no">kavárně</b></td><td class="ok">✓</td></tr>
+        <tr><td>podíváme se na model ISO/OSI a jeho sedm vrstev</td><td><b class="no">nájděte se</b> … model <b class="no">OSI, OSI o</b> sedm <b class="no">vrstvách</b></td><td class="ok">✓</td><td class="ok">✓</td></tr>
+      </table>
+      <p class="note r d4" style="font-size:21px"><b>3:18 min, přednáška Úvod do sítí.</b> Gemma potřebovala větší kontext: 3 minuty zvuku ≈ 5&nbsp;000 tokenů, výchozí je 4&nbsp;096. Pomůže <code>PARAMETER num_ctx 8192</code>.</p>
     </div>
   </div>
 </section>
